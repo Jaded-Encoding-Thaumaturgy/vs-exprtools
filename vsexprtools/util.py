@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Iterable, List, Sequence, TypeVar, Union
-from vsutil import EXPR_VARS
 
 import vapoursynth as vs
 
@@ -15,6 +14,7 @@ VSFunc = Callable[[vs.VideoNode], vs.VideoNode]
 wmean_matrix = [1, 2, 1, 2, 4, 2, 1, 2, 1]
 mean_matrix = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 
+EXPR_VARS: str = 'xyzabcdefghijklmnopqrstuvw'
 
 try:
     aka_expr_available = bool(core.akarin.Expr)
