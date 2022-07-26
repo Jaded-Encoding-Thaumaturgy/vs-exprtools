@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+import vapoursynth as vs
 from abc import abstractmethod
 from typing import (
     Any, Callable, List, Protocol, SupportsFloat, SupportsIndex, TypeAlias, TypeVar, Union, runtime_checkable
@@ -89,3 +89,8 @@ class StrList(List[SupportsString]):
 
 StrArr = SingleOrArr[SupportsString]
 StrArrOpt = SingleOrArrOpt[SupportsString]
+
+
+class VSFunction(Protocol):
+    def __call__(self, clip: vs.VideoNode, *args: Any, **kwargs: Any) -> vs.VideoNode:
+        ...
