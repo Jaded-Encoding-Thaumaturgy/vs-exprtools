@@ -1,18 +1,14 @@
 from __future__ import annotations
+from functools import partial
+from math import ceil, floor
 
-from typing import Any, Callable, Iterable, List, Sequence, TypeVar, Union
+from typing import Any, Iterable, List, Sequence, TypeVar, Union
 
 import vapoursynth as vs
 
 core = vs.core
 
-FINT = TypeVar('FINT', bound=Callable[..., vs.VideoNode])
-FFLOAT = TypeVar('FFLOAT', bound=Callable[..., vs.VideoNode])
 PlanesT = Union[int, Sequence[int], None]
-VSFunc = Callable[[vs.VideoNode], vs.VideoNode]
-
-wmean_matrix = [1, 2, 1, 2, 4, 2, 1, 2, 1]
-mean_matrix = [1, 1, 1, 1, 1, 1, 1, 1, 1]
 
 EXPR_VARS: str = 'xyzabcdefghijklmnopqrstuvw'
 
@@ -23,6 +19,24 @@ except AttributeError:
 
 
 T = TypeVar('T', bound=Union[int, float, str])
+Nb = TypeVar('Nb', float, int)
+
+
+def clamp(val: Nb, min_val: Nb, max_val: Nb) -> Nb:
+    return min_val if val < min_val else max_val if val > max_val else val
+
+
+def cround(x: float) -> int:
+    return floor(x + 0.5) if x > 0 else ceil(x - 0.5)
+
+
+def mod_x(val: int | float, x: int) -> int:
+    return max(x * x, cround(val / x) * x)
+
+
+mod2 = partial(mod_x, x=2)
+
+mod4 = partial(mod_x, x=4)
 
 
 def normalise_seq(x: T | Sequence[T], length_max: int = 3) -> List[T]:
