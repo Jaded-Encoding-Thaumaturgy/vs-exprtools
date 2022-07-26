@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 from functools import partial
 from math import ceil, floor
-
 from typing import Any, Iterable, List, Sequence, TypeVar, Union
 
 import vapoursynth as vs
 
+from .types import VSFunction as _VSFunc
+
 core = vs.core
 
 PlanesT = Union[int, Sequence[int], None]
+VSFunction = _VSFunc
 
 EXPR_VARS: str = 'xyzabcdefghijklmnopqrstuvw'
 

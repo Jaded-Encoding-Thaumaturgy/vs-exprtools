@@ -1,9 +1,11 @@
 from __future__ import annotations
-import vapoursynth as vs
+
 from abc import abstractmethod
 from typing import (
     Any, Callable, List, Protocol, SupportsFloat, SupportsIndex, TypeAlias, TypeVar, Union, runtime_checkable
 )
+
+import vapoursynth as vs
 
 F = TypeVar('F', bound=Callable[..., Any])
 
