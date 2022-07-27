@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import Any, Dict, List, Sequence
+from typing import Any, List, Sequence
 
 import vapoursynth as vs
 
 from .exprop import ExprOp
 from .types import SingleOrArrOpt, StrArr, StrArrOpt, SupportsString
-from .util import EXPR_VARS, aka_expr_available, flatten, normalise_planes, to_arr
+from .util import EXPR_VARS, aka_expr_available, flatten, norm_expr_planes, normalise_planes, to_arr
 
 core = vs.core
 
@@ -32,7 +32,7 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> List[SupportsString]:
 def combine(
     clips: Sequence[vs.VideoNode], operator: ExprOp = ExprOp.MAX, suffix: StrArrOpt = None, prefix: StrArrOpt = None,
     expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None, planes: SingleOrArrOpt[int] = None,
-    **expr_kwargs: Dict[str, Any]
+    **expr_kwargs: Any
 ) -> vs.VideoNode:
     n_clips = len(clips)
 
@@ -48,21 +48,19 @@ def combine(
 
 
 def expr(
-    clips: Sequence[vs.VideoNode], expr: StrArr, planes: SingleOrArrOpt[int], **expr_kwargs: Dict[str, Any]
+    clips: Sequence[vs.VideoNode], expr: StrArr, planes: SingleOrArrOpt[int], **expr_kwargs: Any
 ) -> vs.VideoNode:
     firstclip = clips[0]
     assert firstclip.format
 
-    n_planes = firstclip.format.num_planes
+    planes = normalise_planes(firstclip, planes)
 
-    expr_array: List[SupportsString] = flatten(expr)  # type: ignore
+    expr_array = list[SupportsString](flatten(expr))  # type: ignore
 
     expr_array_filtered = filter(lambda x: x is not None and x != '', expr_array)
 
     expr_string = ' '.join([str(x).strip() for x in expr_array_filtered])
 
-    planesl = normalise_planes(firstclip, planes)
-
     return expr_func(
-        clips, [expr_string if x in planesl else '' for x in range(n_planes)], **expr_kwargs  # type: ignore
+        clips, norm_expr_planes(firstclip, expr_string, planes), **expr_kwargs
     )

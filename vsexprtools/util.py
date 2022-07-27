@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import string
 from functools import partial
 from math import ceil, floor
 from typing import Any, Iterable, List, Sequence, TypeVar, Union
@@ -13,7 +14,7 @@ core = vs.core
 PlanesT = Union[int, Sequence[int], None]
 VSFunction = _VSFunc
 
-EXPR_VARS: str = 'xyzabcdefghijklmnopqrstuvw'
+EXPR_VARS = (alph := list(string.ascii_lowercase))[(idx := alph.index('x')):] + alph[:idx]
 
 try:
     aka_expr_available = bool(core.akarin.Expr)
