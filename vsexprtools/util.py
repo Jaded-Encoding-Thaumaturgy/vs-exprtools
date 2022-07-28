@@ -6,6 +6,7 @@ from math import ceil, floor
 from typing import Any, Iterable, List, Sequence, TypeVar, Union
 
 import vapoursynth as vs
+from vsutil import depth, disallow_variable_format, get_depth
 
 from .types import VSFunction as _VSFunc
 
@@ -63,7 +64,7 @@ def normalise_planes(clip: vs.VideoNode, planes: PlanesT = None, pad: bool = Fal
     if pad:
         return normalise_seq(planes, clip.format.num_planes)
 
-    return list(set(planes))
+    return list(set(sorted(planes)))
 
 
 def norm_expr_planes(
@@ -96,3 +97,8 @@ def flatten(items: Iterable[T]) -> Iterable[T]:
                 yield sub_x
         else:
             yield val  # type: ignore
+
+
+@disallow_variable_format
+def expect_bits(clip: vs.VideoNode, expected_depth: int = 16) -> tuple[int, vs.VideoNode]:
+    return (bits := get_depth(clip)), depth(clip, expected_depth) if bits != expected_depth else clip
