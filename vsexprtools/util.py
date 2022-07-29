@@ -1,19 +1,45 @@
 from __future__ import annotations
 
 import string
-from functools import partial
+from functools import partial, update_wrapper
 from math import ceil, floor
-from typing import Any, Iterable, List, Sequence, TypeVar, Union
+from types import FunctionType
+from typing import Any, ByteString, Callable, Deque, Iterable, List, Mapping, Sequence, Set, TypeVar, Union, overload
 
 import vapoursynth as vs
 from vsutil import depth, disallow_variable_format, get_depth
 
-from .types import VSFunction as _VSFunc
+from .types import (
+    ByteData, ComparatorFunc, PlanesT, StrList, SupportsAllComparisons, SupportsDunderGE, SupportsDunderGT,
+    SupportsDunderLE, SupportsDunderLT, SupportsFloatOrIndex, SupportsRichComparison, SupportsString, SupportsTrunc,
+    VSFunction
+)
+
+AnythingElse = TypeVar(
+    'AnythingElse', bound=Union[
+        type, int, str, None, SupportsFloatOrIndex, ByteData, SupportsAllComparisons,
+        SupportsTrunc, SupportsString, SupportsRichComparison, VSFunction, ComparatorFunc, StrList, ByteString,
+        SupportsDunderLT, SupportsDunderGT, SupportsDunderLE, SupportsDunderGE, Set, Mapping, Deque  # type: ignore
+    ]
+)
+
+
+__all__ = [
+    # VS variables
+    'EXPR_VARS', 'aka_expr_available',
+    # VS Functions
+    'expect_bits',
+    # Math stuff
+    'clamp', 'cround', 'mod_x', 'mod2', 'mod4',
+    # Array stuff
+    'to_arr', 'normalise_seq', 'flatten',
+    # VS helpers
+    'normalise_planes', 'norm_expr_planes',
+    # Other utils
+    'copy_func',
+]
 
 core = vs.core
-
-PlanesT = Union[int, Sequence[int], None]
-VSFunction = _VSFunc
 
 EXPR_VARS = (alph := list(string.ascii_lowercase))[(idx := alph.index('x')):] + alph[:idx]
 
@@ -23,7 +49,6 @@ except AttributeError:
     aka_expr_available = False
 
 
-T = TypeVar('T', bound=Union[int, float, str])
 Nb = TypeVar('Nb', float, int)
 
 
@@ -44,13 +69,23 @@ mod2 = partial(mod_x, x=2)
 mod4 = partial(mod_x, x=4)
 
 
-def normalise_seq(x: T | Sequence[T], length_max: int = 3) -> List[T]:
-    if not isinstance(x, Sequence):
-        return [x] * length_max
+@overload
+def normalise_seq(val: Sequence[AnythingElse], length_max: int = 3) -> List[AnythingElse]:
+    pass
 
-    x = list(x) + [x[-1]] * (length_max - len(x))
 
-    return x[:length_max]
+@overload
+def normalise_seq(val: AnythingElse, length_max: int = 3) -> List[AnythingElse]:
+    pass
+
+
+def normalise_seq(val: Any, length_max: int = 3) -> Any:
+    if not isinstance(val, Sequence):
+        return [val] * length_max
+
+    val = list(val) + [val[-1]] * (length_max - len(val))
+
+    return val[:length_max]
 
 
 def normalise_planes(clip: vs.VideoNode, planes: PlanesT = None, pad: bool = False) -> List[int]:
@@ -84,21 +119,51 @@ def norm_expr_planes(
     ]
 
 
-def to_arr(array: Sequence[T] | T) -> List[T]:
-    return list(
-        array if (type(array) in {list, tuple, range, zip, set, map, enumerate}) else [array]  # type: ignore
-    )
+@overload
+def to_arr(val: Sequence[AnythingElse]) -> List[AnythingElse]:
+    pass
 
 
-def flatten(items: Iterable[T]) -> Iterable[T]:
+@overload
+def to_arr(val: AnythingElse) -> List[AnythingElse]:
+    pass
+
+
+def to_arr(val: Any) -> Any:
+    return val if isinstance(val, (list, tuple, range, zip, set, map, enumerate)) else [val]
+
+
+@overload
+def flatten(items: Iterable[Iterable[AnythingElse]]) -> Iterable[AnythingElse]:
+    ...
+
+
+@overload
+def flatten(items: Iterable[AnythingElse]) -> Iterable[AnythingElse]:
+    ...
+
+
+def flatten(items: Any) -> Any:
     for val in items:
         if isinstance(val, Iterable) and not isinstance(val, (str, bytes)):
             for sub_x in flatten(val):
                 yield sub_x
         else:
-            yield val  # type: ignore
+            yield val
 
 
 @disallow_variable_format
 def expect_bits(clip: vs.VideoNode, expected_depth: int = 16) -> tuple[int, vs.VideoNode]:
     return (bits := get_depth(clip)), depth(clip, expected_depth) if bits != expected_depth else clip
+
+
+def copy_func(f: Callable[..., Any]) -> FunctionType:
+    try:
+        g = FunctionType(
+            f.__code__, f.__globals__, name=f.__name__, argdefs=f.__defaults__, closure=f.__closure__
+        )
+        g = update_wrapper(g, f)
+        g.__kwdefaults__ = f.__kwdefaults__
+        return g
+    except BaseException:  # for builtins
+        return f  # type: ignore

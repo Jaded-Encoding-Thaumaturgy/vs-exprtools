@@ -2,10 +2,32 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from typing import (
-    Any, Callable, List, Protocol, SupportsFloat, SupportsIndex, TypeAlias, TypeVar, Union, runtime_checkable
+    Any, Callable, Iterable, List, Protocol, Sequence, SupportsFloat, SupportsIndex, TypeAlias, TypeVar, Union,
+    overload, runtime_checkable
 )
 
 import vapoursynth as vs
+
+__all__ = [
+    'F', 'T', 'R', 'T_contra', 'Self',
+
+    'SingleOrArr', 'SingleOrArrOpt',
+    'StrArr', 'StrArrOpt',
+
+    'PlanesT',
+
+    'SupportsFloatOrIndex', 'ByteData',
+
+    'SupportsAllComparisons',
+    'SupportsTrunc', 'SupportsString',
+    'SupportsDunderLT', 'SupportsDunderGT',
+    'SupportsDunderLE', 'SupportsDunderGE',
+    'SupportsRichComparison', 'SupportsRichComparisonT',
+
+    'VSFunction', 'ComparatorFunc',
+
+    'StrList'
+]
 
 F = TypeVar('F', bound=Callable[..., Any])
 
@@ -13,6 +35,7 @@ T = TypeVar('T')
 R = TypeVar('R')
 
 T_contra = TypeVar("T_contra", contravariant=True)
+PlanesT = Union[int, Sequence[int], None]
 
 Self = TypeVar("Self")
 
@@ -86,7 +109,7 @@ class StrList(List[SupportsString]):
     def __str__(self) -> str:
         from .util import flatten
 
-        return ' '.join(map(str, flatten(self)))  # type: ignore
+        return ' '.join(map(str, flatten(self)))
 
 
 StrArr = SingleOrArr[SupportsString]
@@ -95,4 +118,42 @@ StrArrOpt = SingleOrArrOpt[SupportsString]
 
 class VSFunction(Protocol):
     def __call__(self, clip: vs.VideoNode, *args: Any, **kwargs: Any) -> vs.VideoNode:
+        ...
+
+
+_T = TypeVar('_T')
+_T1 = TypeVar('_T1')
+_T2 = TypeVar('_T2')
+
+
+class ComparatorFunc(Protocol):
+    @overload
+    def __call__(
+        self, __arg1: SupportsRichComparisonT, __arg2: SupportsRichComparisonT,
+        *_args: SupportsRichComparisonT, key: None = ...
+    ) -> SupportsRichComparisonT:
+        ...
+
+    @overload
+    def __call__(self, __arg1: _T, __arg2: _T, *_args: _T, key: Callable[[_T], SupportsRichComparison]) -> _T:
+        ...
+
+    @overload
+    def __call__(self, __iterable: Iterable[SupportsRichComparisonT], *, key: None = ...) -> SupportsRichComparisonT:
+        ...
+
+    @overload
+    def __call__(self, __iterable: Iterable[_T], *, key: Callable[[_T], SupportsRichComparison]) -> _T:
+        ...
+
+    @overload
+    def __call__(
+        self, __iterable: Iterable[SupportsRichComparisonT], *, key: None = ..., default: _T
+    ) -> SupportsRichComparisonT | _T:
+        ...
+
+    @overload
+    def __call__(
+        self, __iterable: Iterable[_T1], *, key: Callable[[_T1], SupportsRichComparison], default: _T2
+    ) -> _T1 | _T2:
         ...

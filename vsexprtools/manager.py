@@ -12,6 +12,10 @@ from .polyfills import global_builtins, global_builtins_expr
 from .util import EXPR_VARS
 from .variables import ClipVar, ComputedVar, ExprVar
 
+__all__ = [
+    'InlineExpr', 'inline_expr'
+]
+
 core = vs.core
 
 

@@ -9,6 +9,10 @@ from .exprop import ExprOp
 from .types import SingleOrArrOpt, StrArr, StrArrOpt, SupportsString
 from .util import EXPR_VARS, aka_expr_available, flatten, norm_expr_planes, normalise_planes, to_arr
 
+__all__ = [
+    'expr_func', 'combine', 'expr'
+]
+
 core = vs.core
 
 
@@ -24,9 +28,9 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> List[SupportsString]:
     if ffix is None:
         return [''] * n_clips
 
-    ffix = [ffix] if (type(ffix) in {str, tuple}) else list(ffix)  # type: ignore
+    ffix = [ffix] if isinstance(ffix, tuple) else to_arr(ffix)  # type: ignore
 
-    return ffix * max(1, ceil(n_clips / len(ffix)))
+    return ffix * max(1, ceil(n_clips / len(ffix)))  # type: ignore
 
 
 def combine(
@@ -38,7 +42,7 @@ def combine(
 
     prefixes, suffixes = (_combine_norm__ix(x, n_clips) for x in (prefix, suffix))
 
-    normalized_args = [to_arr(x)[:n_clips + 1] for x in (prefixes, EXPR_VARS, suffixes)]  # type: ignore
+    normalized_args = [to_arr(x)[:n_clips + 1] for x in (prefixes, EXPR_VARS, suffixes)]
 
     args = zip(*normalized_args)
 

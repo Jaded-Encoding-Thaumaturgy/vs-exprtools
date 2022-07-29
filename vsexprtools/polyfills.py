@@ -1,23 +1,13 @@
 import builtins
-from functools import update_wrapper
-from types import FunctionType
-from typing import Any, Callable
+from typing import Any
 
 from .operators import ExprOperators
+from .util import copy_func
 from .variables import ExprVar
 
-
-def copy_func(f: Callable[..., Any]) -> FunctionType:
-    try:
-        g = FunctionType(
-            f.__code__, f.__globals__, name=f.__name__, argdefs=f.__defaults__, closure=f.__closure__
-        )
-        g = update_wrapper(g, f)
-        g.__kwdefaults__ = f.__kwdefaults__
-        return g
-    except BaseException:  # for builtins
-        return f  # type: ignore
-
+__all__ = [
+    'global_builtins', 'global_builtins_expr'
+]
 
 global_builtins = _originals = {
     'min': copy_func(builtins.min),

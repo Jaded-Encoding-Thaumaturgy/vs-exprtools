@@ -4,6 +4,10 @@ from enum import Enum
 from itertools import cycle
 from typing import Iterator, List
 
+__all__ = [
+    'ExprOp'
+]
+
 
 class ExprOp(str, Enum):
     # 1 Argument

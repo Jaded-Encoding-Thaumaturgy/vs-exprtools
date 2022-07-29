@@ -19,10 +19,21 @@ else:
     ExprOtherT: None
     ExprVar: None
 
+
+__all__ = [
+    'ExprOperators', 'BaseOperator',
+
+    'UnaryBaseOperator', 'BinaryBaseOperator', 'TernaryBaseOperator',
+    'UnaryOperator', 'BinaryOperator', 'TernaryOperator',
+
+    'UnaryMathOperator', 'UnaryBoolOperator',
+    'BinaryMathOperator', 'BinaryBoolOperator',
+    'TernaryIfOperator', 'TernaryCompOperator', 'TernaryPixelAccessOperator',
+]
+
 T = TypeVar('T')
 R = TypeVar('R')
 SuppRC: TypeAlias = SupportsRichComparison
-
 
 core = vs.core
 

@@ -16,7 +16,13 @@ else:
     inline_expr: None
 
 from .operators import BaseOperator, ExprOperators
-from .types import F, ByteData, Self
+from .types import ByteData, F, Self
+
+__all__ = [
+    'ExprVar', 'ClipVar', 'LiteralVar', 'ComputedVar',
+    'ComplexVar', 'ClipPropsVar',
+    'resolverT', 'ExprOtherT'
+]
 
 core = vs.core
 
