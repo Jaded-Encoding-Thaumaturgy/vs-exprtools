@@ -10,7 +10,7 @@ import vapoursynth as vs
 from vsutil import depth, disallow_variable_format, get_depth
 
 from .types import (
-    ByteData, ComparatorFunc, PlanesT, StrList, SupportsAllComparisons, SupportsDunderGE, SupportsDunderGT,
+    ByteData, ComparatorFunc, FrameRange, PlanesT, StrList, SupportsAllComparisons, SupportsDunderGE, SupportsDunderGT,
     SupportsDunderLE, SupportsDunderLT, SupportsFloatOrIndex, SupportsRichComparison, SupportsString, SupportsTrunc,
     VSFunction
 )
@@ -34,7 +34,8 @@ __all__ = [
     # Array stuff
     'to_arr', 'normalise_seq', 'flatten',
     # VS helpers
-    'normalise_planes', 'norm_expr_planes',
+    'normalise_planes', 'norm_expr_planes', 'normalize_franges',
+    'shift_clip', 'shift_clip_multi',
     # Other utils
     'copy_func',
 ]
@@ -167,3 +168,32 @@ def copy_func(f: Callable[..., Any]) -> FunctionType:
         return g
     except BaseException:  # for builtins
         return f  # type: ignore
+
+
+def normalize_franges(franges: FrameRange, /) -> Iterable[int]:
+    if isinstance(franges, int):
+        return [franges]
+    elif isinstance(franges, tuple):
+        start, stop = franges
+        step = -1 if stop < start else 1
+        return range(start, stop + step, step)
+    else:
+        return franges
+
+
+def shift_clip(clip: vs.VideoNode, offset: int) -> vs.VideoNode:
+    if offset > clip.num_frames - 1:
+        raise ValueError("shift_clip: Offset can't be greater than the clip length!")
+
+    if offset < 0:
+        return clip[0] * abs(offset) + clip[:offset]
+    elif offset > 0:
+        return clip[offset:] + clip[-1] * offset
+
+    return clip
+
+
+def shift_clip_multi(clip: vs.VideoNode, shift: FrameRange = (-1, 1)) -> List[vs.VideoNode]:
+    ranges = normalize_franges(shift)
+
+    return [shift_clip(clip, x) for x in ranges]

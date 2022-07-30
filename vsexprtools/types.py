@@ -14,7 +14,7 @@ __all__ = [
     'SingleOrArr', 'SingleOrArrOpt',
     'StrArr', 'StrArrOpt',
 
-    'PlanesT',
+    'PlanesT', 'FrameRange',
 
     'SupportsFloatOrIndex', 'ByteData',
 
@@ -29,13 +29,14 @@ __all__ = [
     'StrList'
 ]
 
-F = TypeVar('F', bound=Callable[..., Any])
-
 T = TypeVar('T')
 R = TypeVar('R')
 
+F = TypeVar('F', bound=Callable[..., Any])
 T_contra = TypeVar("T_contra", contravariant=True)
+
 PlanesT = Union[int, Sequence[int], None]
+FrameRange = Union[int, tuple[int, int], list[int]]
 
 Self = TypeVar("Self")
 
