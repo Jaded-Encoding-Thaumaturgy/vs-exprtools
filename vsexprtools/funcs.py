@@ -4,6 +4,7 @@ from math import ceil
 from typing import Any, List, Literal, Sequence
 
 import vapoursynth as vs
+from vskernels import VideoFormatT
 
 from .exprop import ExprOp
 from .types import SingleOrArrOpt, StrArr, StrArrOpt, SupportsString
@@ -18,7 +19,7 @@ core = vs.core
 
 def expr_func(
     clips: vs.VideoNode | Sequence[vs.VideoNode], expr: str | Sequence[str],
-    format: int | None = None, opt: bool = False, boundary: bool = False,
+    format: VideoFormatT | None = None, opt: bool | None = None, boundary: bool = False,
     force_akarin: Literal[False] | str = False
 ) -> vs.VideoNode:
     if not aka_expr_available and force_akarin:
@@ -26,6 +27,14 @@ def expr_func(
             f'{force_akarin}: This function only works with akarin-plugin!\n'
             'Download it from https://github.com/AkarinVS/vapoursynth-plugin'
         )
+
+    format = int(format) if format is not None else None
+
+    if aka_expr_available and opt is None:
+        opt = all([
+            clip.format and clip.format.sample_type == vs.INTEGER
+            for clip in (clips if isinstance(clips, Sequence) else clips)
+        ])
 
     try:
         if aka_expr_available:
