@@ -28,9 +28,9 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> List[SupportsString]:
     if ffix is None:
         return [''] * n_clips
 
-    ffix = [ffix] if isinstance(ffix, tuple) else to_arr(ffix)  # type: ignore
+    ffix = [ffix] if (type(ffix) in {str, tuple}) else list(ffix)  # type: ignore
 
-    return ffix * max(1, ceil(n_clips / len(ffix)))  # type: ignore
+    return ffix * max(1, ceil(n_clips / len(ffix)))
 
 
 def combine(

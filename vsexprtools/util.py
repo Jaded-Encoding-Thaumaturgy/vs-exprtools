@@ -131,7 +131,7 @@ def to_arr(val: AnythingElse) -> List[AnythingElse]:
 
 
 def to_arr(val: Any) -> Any:
-    return val if isinstance(val, (list, tuple, range, zip, set, map, enumerate)) else [val]
+    return val if type(val) in {list, tuple, range, zip, set, map, enumerate} else [val]
 
 
 @overload
