@@ -7,7 +7,7 @@ import vapoursynth as vs
 from vskernels import VideoFormatT
 
 from .exprop import ExprOp
-from .types import SingleOrArrOpt, StrArr, StrArrOpt, SupportsString
+from .types import PlanesT, StrArr, StrArrOpt, SupportsString
 from .util import EXPR_VARS, aka_expr_available, flatten, norm_expr_planes, normalise_planes, to_arr
 
 __all__ = [
@@ -33,7 +33,7 @@ def expr_func(
     if aka_expr_available and opt is None:
         opt = all([
             clip.format and clip.format.sample_type == vs.INTEGER
-            for clip in (clips if isinstance(clips, Sequence) else clips)
+            for clip in (clips if isinstance(clips, Sequence) else [clips])
         ])
 
     try:
@@ -59,7 +59,7 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> List[SupportsString]:
 
 def combine(
     clips: Sequence[vs.VideoNode], operator: ExprOp = ExprOp.MAX, suffix: StrArrOpt = None, prefix: StrArrOpt = None,
-    expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None, planes: SingleOrArrOpt[int] = None,
+    expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None, planes: PlanesT = None,
     **expr_kwargs: Any
 ) -> vs.VideoNode:
     n_clips = len(clips)
@@ -76,7 +76,7 @@ def combine(
 
 
 def expr(
-    clips: Sequence[vs.VideoNode], expr: StrArr, planes: SingleOrArrOpt[int], **expr_kwargs: Any
+    clips: Sequence[vs.VideoNode], expr: StrArr, planes: PlanesT, **expr_kwargs: Any
 ) -> vs.VideoNode:
     firstclip = clips[0]
     assert firstclip.format
