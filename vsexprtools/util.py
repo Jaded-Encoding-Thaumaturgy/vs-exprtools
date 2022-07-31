@@ -35,7 +35,7 @@ __all__ = [
     'to_arr', 'normalise_seq', 'flatten',
     # VS helpers
     'normalise_planes', 'norm_expr_planes', 'normalize_franges',
-    'shift_clip', 'shift_clip_multi',
+    'shift_clip', 'shift_clip_multi', 'get_w', 'get_h',
     # Other utils
     'copy_func',
 ]
@@ -197,3 +197,59 @@ def shift_clip_multi(clip: vs.VideoNode, shift: FrameRange = (-1, 1)) -> List[vs
     ranges = normalize_franges(shift)
 
     return [shift_clip(clip, x) for x in ranges]
+
+
+@overload
+def get_w(height: int, ar: float = 16 / 9, mod: int = 2, /) -> int:
+    ...
+
+
+@overload
+def get_w(height: int, ref: vs.VideoNode, /) -> int:
+    ...
+
+
+def get_w(height: int, ar_or_ref: vs.VideoNode | float = 16 / 9, mod: int | None = None, /) -> int:
+    if isinstance(ar_or_ref, vs.VideoNode):
+        assert (ref := ar_or_ref).format
+        aspect_ratio = ref.width / ref.height
+        mod = 1 << ref.format.subsampling_w
+    else:
+        aspect_ratio = ar_or_ref
+        if mod is None:
+            mod = 0 if height % 2 else 2
+
+    width = height * aspect_ratio
+
+    if mod:
+        return mod_x(width, mod)
+
+    return round(width)
+
+
+@overload
+def get_h(width: int, ar: float = 16 / 9, mod: int = 2, /) -> int:
+    ...
+
+
+@overload
+def get_h(width: int, ref: vs.VideoNode, /) -> int:
+    ...
+
+
+def get_h(width: int, ar_or_ref: vs.VideoNode | float = 16 / 9, mod: int | None = None, /) -> int:
+    if isinstance(ar_or_ref, vs.VideoNode):
+        assert (ref := ar_or_ref).format
+        aspect_ratio = ref.height / ref.width
+        mod = 1 << ref.format.subsampling_h
+    else:
+        aspect_ratio = ar_or_ref
+        if mod is None:
+            mod = 0 if width % 2 else 2
+
+    height = width * aspect_ratio
+
+    if mod:
+        return mod_x(height, mod)
+
+    return round(height)
