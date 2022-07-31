@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import Any, List, Sequence
+from typing import Any, List, Literal, Sequence
 
 import vapoursynth as vs
 
@@ -18,10 +18,25 @@ core = vs.core
 
 def expr_func(
     clips: vs.VideoNode | Sequence[vs.VideoNode], expr: str | Sequence[str],
-    format: int | None = None, opt: bool = False, boundary: bool = False
+    format: int | None = None, opt: bool = False, boundary: bool = False,
+    force_akarin: Literal[False] | str = False
 ) -> vs.VideoNode:
-    args = (clips, expr, format, opt, boundary)
-    return core.akarin.Expr(*args) if aka_expr_available else core.std.Expr(*args[:3])
+    if not aka_expr_available and force_akarin:
+        raise RuntimeError(
+            f'{force_akarin}: This function only works with akarin-plugin!\n'
+            'Download it from https://github.com/AkarinVS/vapoursynth-plugin'
+        )
+
+    try:
+        if aka_expr_available:
+            return core.akarin.Expr(clips, expr, format, opt, boundary)
+
+        return core.std.Expr(clips, expr, format)
+    except BaseException as e:
+        raise RuntimeError(
+            'There was an error when evaluating the expression:\n'
+            'You might need akarin-plugin, and are missing it.'
+        ) from e
 
 
 def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> List[SupportsString]:
