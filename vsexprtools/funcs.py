@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import Any, List, Literal, Sequence
+from typing import Any, Iterable, List, Literal, Sequence, Tuple
 
 import vapoursynth as vs
 from vskernels import VideoFormatT
 
 from .exprop import ExprOp
 from .types import PlanesT, StrArr, StrArrOpt, SupportsString
-from .util import EXPR_VARS, aka_expr_available, flatten, norm_expr_planes, normalise_planes, to_arr
+from .util import EXPR_VARS, aka_expr_available, flatten, norm_expr_planes, to_arr
 
 __all__ = [
-    'expr_func', 'combine', 'expr'
+    'expr_func', 'combine', 'norm_expr'
 ]
 
 core = vs.core
@@ -76,20 +76,32 @@ def combine(
     return norm_expr(clips, [expr_prefix, args, operators, expr_suffix], planes, **expr_kwargs)
 
 
-    clips: Sequence[vs.VideoNode], expr: StrArr, planes: PlanesT, **expr_kwargs: Any
 def norm_expr(
+    clips: vs.VideoNode | Iterable[vs.VideoNode], expr: str | StrArr | Tuple[str | StrArr, ...],
+    planes: PlanesT = None, format: VideoFormatT | None = None, opt: bool | None = None,
+    boundary: bool = False, force_akarin: Literal[False] | str = False, **kwargs: Any
 ) -> vs.VideoNode:
-    firstclip = clips[0]
-    assert firstclip.format
+    if isinstance(clips, vs.VideoNode):
+        clips = [clips]
+    else:
+        clips = list(clips)
 
-    planes = normalise_planes(firstclip, planes)
+    if isinstance(expr, str):
+        nexpr = tuple([[expr]])
+    elif not isinstance(expr, tuple):
+        nexpr = tuple([to_arr(expr)])  # type: ignore
+    else:
+        nexpr = tuple([to_arr(x) for x in expr])  # type: ignore
 
-    expr_array = list[SupportsString](flatten(expr))  # type: ignore
+    normalized_exprs = [
+        ' '.join([
+            str(x).strip() for x in [
+                val for val in list(flatten(plane_expr))
+                if val is not None and val != ''
+            ]
+        ]) for plane_expr in nexpr
+    ]
 
-    expr_array_filtered = filter(lambda x: x is not None and x != '', expr_array)
+    normalized_expr = norm_expr_planes(clips[0], normalized_exprs, planes, **kwargs)
 
-    expr_string = ' '.join([str(x).strip() for x in expr_array_filtered])
-
-    return expr_func(
-        clips, norm_expr_planes(firstclip, expr_string, planes), **expr_kwargs
-    )
+    return expr_func(clips, normalized_expr, format, opt, boundary, force_akarin)
