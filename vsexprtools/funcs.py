@@ -43,8 +43,10 @@ def expr_func(
         return core.std.Expr(clips, expr, format)
     except BaseException as e:
         raise RuntimeError(
-            'There was an error when evaluating the expression:\n'
-            'You might need akarin-plugin, and are missing it.'
+            'There was an error when evaluating the expression:\n' + (
+                '' if aka_expr_available else 'You might need akarin-plugin, and are missing it.'
+            )
+            
         ) from e
 
 
