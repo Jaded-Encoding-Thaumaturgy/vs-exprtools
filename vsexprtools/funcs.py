@@ -46,7 +46,7 @@ def expr_func(
             'There was an error when evaluating the expression:\n' + (
                 '' if aka_expr_available else 'You might need akarin-plugin, and are missing it.'
             )
-            
+
         ) from e
 
 
@@ -61,8 +61,7 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> List[SupportsString]:
 
 def combine(
     clips: Sequence[vs.VideoNode], operator: ExprOp = ExprOp.MAX, suffix: StrArrOpt = None, prefix: StrArrOpt = None,
-    expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None, planes: PlanesT = None,
-    **expr_kwargs: Any
+    expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None, planes: PlanesT = None, **expr_kwargs: Any
 ) -> vs.VideoNode:
     n_clips = len(clips)
 
@@ -74,11 +73,11 @@ def combine(
 
     operators = operator * (n_clips - 1)
 
-    return expr(clips, [expr_prefix, args, operators, expr_suffix], planes, **expr_kwargs)
+    return norm_expr(clips, [expr_prefix, args, operators, expr_suffix], planes, **expr_kwargs)
 
 
-def expr(
     clips: Sequence[vs.VideoNode], expr: StrArr, planes: PlanesT, **expr_kwargs: Any
+def norm_expr(
 ) -> vs.VideoNode:
     firstclip = clips[0]
     assert firstclip.format
