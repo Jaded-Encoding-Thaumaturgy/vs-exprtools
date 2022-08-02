@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from enum import Enum
 from typing import (
     Any, Callable, Iterable, List, Protocol, Sequence, SupportsFloat, SupportsIndex, TypeAlias, TypeVar, Union,
     overload, runtime_checkable
@@ -26,7 +27,8 @@ __all__ = [
 
     'VSFunction', 'ComparatorFunc',
 
-    'StrList'
+    'StrList',
+    'ConvMode',
 ]
 
 T = TypeVar('T')
@@ -158,3 +160,9 @@ class ComparatorFunc(Protocol):
         self, __iterable: Iterable[_T1], *, key: Callable[[_T1], SupportsRichComparison], default: _T2
     ) -> _T1 | _T2:
         ...
+
+
+class ConvMode(str, Enum):
+    SQUARE = 'hv'
+    VERTICAL = 'v'
+    HORIZONTAL = 'h'
