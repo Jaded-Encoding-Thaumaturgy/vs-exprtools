@@ -53,11 +53,20 @@ class ExprOp(str, Enum):
     CLAMP = "clamp"
 
     # Special Operators
-    REL_PIX = '{char:s}[{x:s},{y:s}]'
-    ABS_PIX = '{x:s} {y:s} {char:s}[]'
+    REL_PIX = '{char:s}[{x:d},{y:d}]'
+    ABS_PIX = '{x:d} {y:d} {char:s}[]'
 
-    def __call__(self, *args: Any, **kwargs: Any) -> str:
-        return self.format(args, **kwargs)
+    def __call__(self, *pos_args: Any, **kwargs: Any) -> str:
+        args = list[Any](pos_args)
+
+        while True:
+            try:
+                return self.format(*args, **kwargs)
+            except KeyError as key:
+                try:
+                    kwargs.update({str(key)[1:-1]: args.pop(0)})
+                except IndexError:
+                    raise key
 
     def __str__(self) -> str:
         return self.value
