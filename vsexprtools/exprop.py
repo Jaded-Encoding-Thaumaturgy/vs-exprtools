@@ -101,3 +101,54 @@ class ExprOp(str, Enum):
             ExprOp.REL_PIX(var, x, y) for (x, y) in coordinates if (x, y) not in exclude
         ])
 
+    @classmethod
+    def convolution(
+        cls, var: str, matrix: Iterable[SupportsFloat] | Iterable[Iterable[SupportsFloat]],
+        bias: float | None = None, divisor: float | bool = True, saturate: bool = True,
+        mode: ConvMode = ConvMode.SQUARE
+    ) -> StrList:
+        convolution = list[float](flatten(matrix))  # type: ignore
+
+        conv_len = len(convolution)
+
+        if not conv_len % 2:
+            raise ValueError('ExprOp.convolution: convolution length must be odd!')
+        elif conv_len < 3:
+            raise ValueError('ExprOp.convolution: you must pass at least 3 convolution items!')
+        elif mode is ConvMode.SQUARE and conv_len != isqrt(conv_len) ** 2:
+            raise ValueError(
+                'ExprOp.convolution: with square mode, convolution must represent a square (radius*radius n items)!'
+            )
+
+        if mode != ConvMode.SQUARE:
+            radius = conv_len // 2
+        else:
+            radius = isqrt(conv_len) // 2
+
+        rel_pixels = cls.matrix(var, radius, mode)
+
+        output = StrList([])
+
+        expr_conv = [
+            [rel_pix, weight, ExprOp.MUL]
+            for rel_pix, weight in zip(rel_pixels, convolution)
+            if weight != 0
+        ]
+
+        output.extend(expr_conv)
+        output.extend(ExprOp.ADD * (len(expr_conv) - 1))
+
+        if divisor is not False:
+            if divisor is True:
+                divisor = sum(map(float, convolution))
+
+            if divisor not in {0, 1}:
+                output.extend([divisor, ExprOp.DIV])
+
+        if bias is not None:
+            output.extend([bias, ExprOp.ADD])
+
+        if not saturate:
+            output.append(ExprOp.ABS)
+
+        return output
