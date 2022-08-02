@@ -7,8 +7,8 @@ import vapoursynth as vs
 from vskernels import VideoFormatT
 
 from .exprop import ExprOp
-from .types import PlanesT, StrArr, StrArrOpt, SupportsString
-from .util import EXPR_VARS, aka_expr_available, flatten, norm_expr_planes, to_arr
+from .types import PlanesT, StrArr, StrArrOpt, StrList, SupportsString
+from .util import EXPR_VARS, aka_expr_available, norm_expr_planes, to_arr
 
 __all__ = [
     'expr_func', 'combine', 'norm_expr'
@@ -93,14 +93,7 @@ def norm_expr(
     else:
         nexpr = tuple([to_arr(x) for x in expr])  # type: ignore
 
-    normalized_exprs = [
-        ' '.join([
-            str(x).strip() for x in [
-                val for val in list(flatten(plane_expr))
-                if val is not None and val != ''
-            ]
-        ]) for plane_expr in nexpr
-    ]
+    normalized_exprs = [StrList(plane_expr).to_str() for plane_expr in nexpr]
 
     normalized_expr = norm_expr_planes(clips[0], normalized_exprs, planes, **kwargs)
 

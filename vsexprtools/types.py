@@ -106,13 +106,15 @@ class StrList(List[SupportsString]):
     def string(self) -> str:
         return self.to_str()
 
-    def to_str(self) -> str:
+    def to_str(self, ref: vs.VideoNode | None = None) -> str:
+        if ref:
+            raise NotImplementedError
         return str(self)
 
     def __str__(self) -> str:
         from .util import flatten
 
-        return ' '.join(map(str, flatten(self)))
+        return ' '.join(filter(None, (str(x).strip() for x in flatten(self) if x is not None)))
 
 
 StrArr = SingleOrArr[SupportsString]
