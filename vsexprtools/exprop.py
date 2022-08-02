@@ -55,6 +55,9 @@ class ExprOp(str, Enum):
     REL_PIX = '{char:s}[{x:s},{y:s}]'
     ABS_PIX = '{x:s} {y:s} {char:s}[]'
 
+    def __call__(self, *args: Any, **kwargs: Any) -> str:
+        return self.format(args, **kwargs)
+
     def __str__(self) -> str:
         return self.value
 
