@@ -4,6 +4,9 @@ from enum import Enum
 from itertools import cycle
 from typing import Iterator, List
 
+from .types import StrList
+from .util import aka_expr_available
+
 __all__ = [
     'ExprOp'
 ]
@@ -63,3 +66,11 @@ class ExprOp(str, Enum):
 
     def __mul__(self, n: int) -> List[ExprOp]:  # type: ignore[override]
         return [self] * n
+
+    @classmethod
+    def clamp(cls, min: float, max: float, c: str = '') -> StrList:
+
+        if aka_expr_available:
+            return StrList([c, min, max, ExprOp.CLAMP])
+
+        return StrList([c, min, ExprOp.MAX, max, ExprOp.MAX])
