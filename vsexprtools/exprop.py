@@ -107,7 +107,10 @@ class ExprOp(str, Enum):
             ]
 
         return StrList([
-            ExprOp.REL_PIX(var, x, y) for (x, y) in coordinates if (x, y) not in exclude
+            var if x == y == 0 else
+            ExprOp.REL_PIX(var, x, y)
+            for (x, y) in coordinates
+            if (x, y) not in exclude
         ])
 
     @classmethod
