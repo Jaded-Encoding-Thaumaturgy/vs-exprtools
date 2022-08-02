@@ -102,8 +102,8 @@ class ExprOp(str, Enum):
         else:
             coordinates = [
                 (x, y)
-                for x in range(-radius, radius + 1)
                 for y in range(-radius, radius + 1)
+                for x in range(-radius, radius + 1)
             ]
 
         return StrList([
@@ -142,7 +142,7 @@ class ExprOp(str, Enum):
         output = StrList([])
 
         expr_conv = [
-            [rel_pix, weight, ExprOp.MUL]
+            rel_pix if weight == 1 else [rel_pix, weight, ExprOp.MUL]
             for rel_pix, weight in zip(rel_pixels, convolution)
             if weight != 0
         ]
