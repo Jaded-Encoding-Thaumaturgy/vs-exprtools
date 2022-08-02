@@ -3,8 +3,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from enum import Enum
 from typing import (
-    Any, Callable, Iterable, List, Protocol, Sequence, SupportsFloat, SupportsIndex, TypeAlias, TypeVar, Union,
-    overload, runtime_checkable
+    TYPE_CHECKING, Any, Callable, Iterable, List, Protocol, Sequence, SupportsFloat, SupportsIndex, TypeAlias, TypeVar,
+    Union, overload, runtime_checkable
 )
 
 import vapoursynth as vs
@@ -98,6 +98,19 @@ SupportsRichComparisonT = TypeVar("SupportsRichComparisonT", bound=SupportsRichC
 
 
 class StrList(List[SupportsString]):
+    if TYPE_CHECKING:
+        @overload
+        def __init__(self) -> None:
+            ...
+
+        @overload
+        def __init__(self, __iterable: Iterable[SupportsString | None]) -> None:
+            ...
+
+        @overload
+        def __init__(self, __iterable: Iterable[Iterable[SupportsString | None] | None]) -> None:
+            ...
+
     @property
     def string(self) -> str:
         pass
