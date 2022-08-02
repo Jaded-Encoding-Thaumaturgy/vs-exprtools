@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from enum import Enum
 from itertools import cycle
-from typing import Iterator, List
+from math import isqrt
+from typing import Any, Iterable, Iterator, List, SupportsFloat
 
-from .types import StrList
-from .util import aka_expr_available
+from .types import ConvMode, StrList
+from .util import aka_expr_available, flatten
 
 __all__ = [
     'ExprOp'
@@ -77,3 +78,26 @@ class ExprOp(str, Enum):
             return StrList([c, min, max, ExprOp.CLAMP])
 
         return StrList([c, min, ExprOp.MAX, max, ExprOp.MAX])
+
+    @classmethod
+    def matrix(
+        cls, var: str, radius: int, mode: ConvMode = ConvMode.SQUARE, exclude: Iterable[tuple[int, int]] = []
+    ) -> StrList:
+        exclude = list(exclude)
+
+        if mode != ConvMode.SQUARE:
+            coordinates = [
+                (xy, 0) if mode is ConvMode.HORIZONTAL else (0, xy)
+                for xy in range(-radius, radius + 1)
+            ]
+        else:
+            coordinates = [
+                (x, y)
+                for x in range(-radius, radius + 1)
+                for y in range(-radius, radius + 1)
+            ]
+
+        return StrList([
+            ExprOp.REL_PIX(var, x, y) for (x, y) in coordinates if (x, y) not in exclude
+        ])
+
