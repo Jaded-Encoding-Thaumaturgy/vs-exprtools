@@ -100,15 +100,14 @@ SupportsRichComparisonT = TypeVar("SupportsRichComparisonT", bound=SupportsRichC
 class StrList(List[SupportsString]):
     if TYPE_CHECKING:
         @overload
-        def __init__(self) -> None:
+        def __init__(self, __iterable: Iterable[SupportsString | None] = []) -> None:
             ...
 
         @overload
-        def __init__(self, __iterable: Iterable[SupportsString | None]) -> None:
+        def __init__(self, __iterable: Iterable[Iterable[SupportsString | None] | None] = []) -> None:
             ...
 
-        @overload
-        def __init__(self, __iterable: Iterable[Iterable[SupportsString | None] | None]) -> None:
+        def __init__(self, __iterable: Any = []) -> None:
             ...
 
     @property
