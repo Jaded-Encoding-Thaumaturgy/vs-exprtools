@@ -200,16 +200,16 @@ def shift_clip_multi(clip: vs.VideoNode, shift: FrameRange = (-1, 1)) -> List[vs
 
 
 @overload
-def get_w(height: int, ar: float = 16 / 9, /, mod: int = 2) -> int:
+def get_w(height: float, ar: float = 16 / 9, /, mod: int = 2) -> int:
     ...
 
 
 @overload
-def get_w(height: int, ref: vs.VideoNode, /) -> int:
+def get_w(height: float, ref: vs.VideoNode, /) -> int:
     ...
 
 
-def get_w(height: int, ar_or_ref: vs.VideoNode | float = 16 / 9, /, mod: int | None = None) -> int:
+def get_w(height: float, ar_or_ref: vs.VideoNode | float = 16 / 9, /, mod: int | None = None) -> int:
     if isinstance(ar_or_ref, vs.VideoNode):
         assert (ref := ar_or_ref).format
         aspect_ratio = ref.width / ref.height
@@ -228,16 +228,16 @@ def get_w(height: int, ar_or_ref: vs.VideoNode | float = 16 / 9, /, mod: int | N
 
 
 @overload
-def get_h(width: int, ar: float = 16 / 9, /, mod: int = 2) -> int:
+def get_h(width: float, ar: float = 16 / 9, /, mod: int = 2) -> int:
     ...
 
 
 @overload
-def get_h(width: int, ref: vs.VideoNode, /) -> int:
+def get_h(width: float, ref: vs.VideoNode, /) -> int:
     ...
 
 
-def get_h(width: int, ar_or_ref: vs.VideoNode | float = 16 / 9, /, mod: int | None = None) -> int:
+def get_h(width: float, ar_or_ref: vs.VideoNode | float = 16 / 9, /, mod: int | None = None) -> int:
     if isinstance(ar_or_ref, vs.VideoNode):
         assert (ref := ar_or_ref).format
         aspect_ratio = ref.height / ref.width
