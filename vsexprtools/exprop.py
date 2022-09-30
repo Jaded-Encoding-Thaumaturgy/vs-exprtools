@@ -5,8 +5,9 @@ from itertools import cycle
 from math import isqrt
 from typing import Any, Iterable, Iterator, List, SupportsFloat
 
-from .types import ConvMode, StrList
-from .util import aka_expr_available, flatten
+from vstools import ConvMode, StrList, flatten
+
+from .util import aka_expr_available
 
 __all__ = [
     'ExprOp'

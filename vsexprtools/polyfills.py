@@ -1,8 +1,9 @@
 import builtins
 from typing import Any
 
+from vstools import copy_func
+
 from .operators import ExprOperators
-from .util import copy_func
 from .variables import ExprVar
 
 __all__ = [

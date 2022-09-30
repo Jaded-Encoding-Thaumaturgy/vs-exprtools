@@ -7,6 +7,7 @@ from typing import List, NamedTuple, Sequence, Type
 
 import vapoursynth as vs
 
+from .funcs import expr_func
 from .operators import ExprOperators
 from .polyfills import global_builtins, global_builtins_expr
 from .util import EXPR_VARS
@@ -15,8 +16,6 @@ from .variables import ClipVar, ComputedVar, ExprVar
 __all__ = [
     'InlineExpr', 'inline_expr'
 ]
-
-core = vs.core
 
 
 class InlineExpr(NamedTuple):
@@ -66,7 +65,7 @@ class inline_expr(AbstractContextManager[InlineExpr]):
         fmt = self._clips[0].format
         assert fmt
 
-        return core.akarin.Expr(self._clips, [
+        return expr_func(self._clips, [
             self._final_expr_node.to_str(plane=plane) for plane in range(fmt.num_planes)
         ])
 

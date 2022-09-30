@@ -5,13 +5,12 @@ import operator as op
 from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING, Any, Callable, Generic, Iterable, List, Sequence, SupportsAbs, SupportsIndex, SupportsRound,
-    TypeAlias, TypeVar, Union, cast, overload
+    TypeAlias, Union, cast, overload
 )
 
-import vapoursynth as vs
+from vstools import R, SupportsFloatOrIndex, SupportsRichComparison, SupportsTrunc, T
 
 from .exprop import ExprOp
-from .types import SupportsFloatOrIndex, SupportsRichComparison, SupportsTrunc
 
 if TYPE_CHECKING:
     from .variables import ComputedVar, ExprOtherT, ExprVar
@@ -31,11 +30,7 @@ __all__ = [
     'TernaryIfOperator', 'TernaryCompOperator', 'TernaryPixelAccessOperator',
 ]
 
-T = TypeVar('T')
-R = TypeVar('R')
 SuppRC: TypeAlias = SupportsRichComparison
-
-core = vs.core
 
 
 def _norm_lit(arg: str | ExprOtherT | BaseOperator) -> ExprVar | BaseOperator:

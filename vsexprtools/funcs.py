@@ -4,11 +4,10 @@ from math import ceil
 from typing import Any, Iterable, List, Literal, Sequence, Tuple
 
 import vapoursynth as vs
-from vskernels import VideoFormatT
+from vstools import PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, get_format, to_arr
 
 from .exprop import ExprOp
-from .types import PlanesT, StrArr, StrArrOpt, StrList, SupportsString
-from .util import EXPR_VARS, aka_expr_available, norm_expr_planes, to_arr
+from .util import EXPR_VARS, aka_expr_available, norm_expr_planes
 
 __all__ = [
     'expr_func', 'combine', 'norm_expr'
@@ -28,7 +27,7 @@ def expr_func(
             'Download it from https://github.com/AkarinVS/vapoursynth-plugin'
         )
 
-    format = int(format) if format is not None else None
+    fmt = None if format is None else get_format(format).id
 
     if aka_expr_available and opt is None:
         opt = all([
@@ -38,9 +37,9 @@ def expr_func(
 
     try:
         if aka_expr_available:
-            return core.akarin.Expr(clips, expr, format, opt, boundary)
+            return core.akarin.Expr(clips, expr, fmt, opt, boundary)
 
-        return core.std.Expr(clips, expr, format)
+        return core.std.Expr(clips, expr, fmt)
     except BaseException as e:
         raise RuntimeError(
             'There was an error when evaluating the expression:\n' + (

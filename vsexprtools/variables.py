@@ -7,16 +7,18 @@ from typing import (
 )
 
 import vapoursynth as vs
-from vsutil import Range as CRange
-from vsutil import get_depth, get_lowest_value, get_neutral_value, get_peak_value, get_plane_size, scale_value
+from vstools import (
+    ByteData, ColorRange, ColorRangeT, F, Self, get_depth, get_lowest_value, get_neutral_value, get_peak_value,
+    get_plane_sizes, scale_value
+)
+
+from .operators import BaseOperator, ExprOperators
 
 if TYPE_CHECKING:
     from .manager import inline_expr
 else:
     inline_expr: None
 
-from .operators import BaseOperator, ExprOperators
-from .types import ByteData, F, Self
 
 __all__ = [
     'ExprVar', 'ClipVar', 'LiteralVar', 'ComputedVar',
@@ -339,7 +341,7 @@ class ClipVar(ExprVar):
 
     @property
     def width_chroma(self) -> LiteralVar:
-        return LiteralVar(get_plane_size(self.clip, 1)[0])
+        return LiteralVar(get_plane_sizes(self.clip, 1)[0])
 
     @property
     def height(self) -> LiteralVar:
@@ -351,7 +353,7 @@ class ClipVar(ExprVar):
 
     @property
     def height_chroma(self) -> LiteralVar:
-        return LiteralVar(get_plane_size(self.clip, 1)[1])
+        return LiteralVar(get_plane_sizes(self.clip, 1)[1])
 
     @property
     def depth(self) -> LiteralVar:
@@ -359,10 +361,10 @@ class ClipVar(ExprVar):
 
     # Helper functions
     def scale(
-        self, value: float, input_depth: int = 8, range_in: CRange = CRange.LIMITED,
-        range_out: CRange | None = None, offsets: bool = False
+        self, value: float, input_depth: int = 8, range_in: ColorRange = ColorRange.LIMITED,
+        range_out: ColorRangeT | None = None, offsets: bool = False
     ) -> ComplexVar:
-        @ ComplexVar.resolver
+        @ComplexVar.resolver
         def _resolve(plane: int = 0, **kwargs: Any) -> Any:
             return scale_value(
                 value, input_depth, get_depth(self.clip),
