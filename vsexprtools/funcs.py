@@ -4,7 +4,7 @@ from math import ceil
 from typing import Any, Iterable, List, Literal, Sequence, Tuple
 
 import vapoursynth as vs
-from vstools import PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, get_format, to_arr
+from vstools import PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, get_video_format, to_arr
 
 from .exprop import ExprOp
 from .util import EXPR_VARS, aka_expr_available, norm_expr_planes
@@ -27,7 +27,7 @@ def expr_func(
             'Download it from https://github.com/AkarinVS/vapoursynth-plugin'
         )
 
-    fmt = None if format is None else get_format(format).id
+    fmt = None if format is None else get_video_format(format).id
 
     if aka_expr_available and opt is None:
         opt = all([
