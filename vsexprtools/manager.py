@@ -3,13 +3,13 @@ from __future__ import annotations
 import builtins
 from contextlib import AbstractContextManager
 from types import TracebackType
-from typing import List, NamedTuple, Sequence, Type
+from typing import NamedTuple, Sequence
 
+from vstools import EXPR_VARS, vs
 
 from .funcs import expr_func
 from .operators import ExprOperators
 from .polyfills import global_builtins, global_builtins_expr
-from .util import EXPR_VARS
 from .variables import ClipVar, ComputedVar, ExprVar
 
 __all__ = [
@@ -18,13 +18,13 @@ __all__ = [
 
 
 class InlineExpr(NamedTuple):
-    clips: List[ClipVar]
+    clips: list[ClipVar]
     op: ExprOperators
     out: inline_expr
 
 
 class inline_expr(AbstractContextManager[InlineExpr]):
-    _clips: List[vs.VideoNode]
+    _clips: list[vs.VideoNode]
     _in_context: bool
     _final_clip: vs.VideoNode | None
     _final_expr_node: ComputedVar
@@ -48,7 +48,7 @@ class inline_expr(AbstractContextManager[InlineExpr]):
         return InlineExpr(self._clips_char_map, ExprOperators(), self)
 
     def __exit__(
-        self, __exc_type: Type[BaseException] | None,
+        self, __exc_type: type[BaseException] | None,
         __exc_value: BaseException | None,
         __traceback: TracebackType | None
     ) -> bool | None:

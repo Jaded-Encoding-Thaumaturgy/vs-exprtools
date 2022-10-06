@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from math import ceil
-from typing import Any, Iterable, List, Literal, Sequence, Tuple
+from typing import Any, Iterable, Literal, Sequence
 
-
-from vstools import PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, get_video_format, to_arr
+from vstools import (
+    EXPR_VARS, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core, get_video_format, to_arr, vs
+)
 
 from .exprop import ExprOp
-from .util import EXPR_VARS, aka_expr_available, norm_expr_planes
+from .util import aka_expr_available, norm_expr_planes
 
 __all__ = [
     'expr_func', 'combine', 'norm_expr'
@@ -47,7 +48,7 @@ def expr_func(
         ) from e
 
 
-def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> List[SupportsString]:
+def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> list[SupportsString]:
     if ffix is None:
         return [''] * n_clips
 
@@ -74,7 +75,7 @@ def combine(
 
 
 def norm_expr(
-    clips: vs.VideoNode | Iterable[vs.VideoNode], expr: str | StrArr | Tuple[str | StrArr, ...],
+    clips: vs.VideoNode | Iterable[vs.VideoNode], expr: str | StrArr | tuple[str | StrArr, ...],
     planes: PlanesT = None, format: VideoFormatT | None = None, opt: bool | None = None,
     boundary: bool = False, force_akarin: Literal[False] | str = False, **kwargs: Any
 ) -> vs.VideoNode:

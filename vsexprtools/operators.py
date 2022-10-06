@@ -4,8 +4,8 @@ import math
 import operator as op
 from dataclasses import dataclass
 from typing import (
-    TYPE_CHECKING, Any, Callable, Generic, Iterable, List, Sequence, SupportsAbs, SupportsIndex, SupportsRound,
-    TypeAlias, Union, cast, overload
+    TYPE_CHECKING, Any, Callable, Generic, Iterable, Sequence, SupportsAbs, SupportsIndex, SupportsRound, TypeAlias,
+    Union, cast, overload
 )
 
 from vstools import R, SupportsFloatOrIndex, SupportsRichComparison, SupportsTrunc, T
@@ -228,12 +228,12 @@ class ExprOperators:
 
     @overload
     @classmethod
-    def as_var(cls, arg0: Sequence[ExprOtherT]) -> List[ComputedVar]:
+    def as_var(cls, arg0: Sequence[ExprOtherT]) -> list[ComputedVar]:
         pass
 
     @classmethod
-    def as_var(cls, arg0: ExprOtherT | Sequence[ExprOtherT]) -> ComputedVar | List[ComputedVar]:
+    def as_var(cls, arg0: ExprOtherT | Sequence[ExprOtherT]) -> ComputedVar | list[ComputedVar]:
         from .variables import ComputedVar
         if isinstance(arg0, Sequence):
-            return cast(List[ComputedVar], list(arg0))
+            return cast(list[ComputedVar], list(arg0))
         return cast(ComputedVar, arg0)

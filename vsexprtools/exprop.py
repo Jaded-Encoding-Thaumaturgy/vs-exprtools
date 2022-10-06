@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from enum import Enum
 from itertools import cycle
 from math import isqrt
-from typing import Any, Iterable, Iterator, List, SupportsFloat
+from typing import Any, Iterable, Iterator, SupportsFloat
 
-from vstools import ConvMode, StrList, flatten
+from vstools import ConvMode, CustomStrEnum, StrList, flatten
 
 from .util import aka_expr_available
 
@@ -14,7 +13,7 @@ __all__ = [
 ]
 
 
-class ExprOp(str, Enum):
+class ExprOp(CustomStrEnum):
     # 1 Argument
     EXP = "exp"
     LOG = "log"
@@ -78,7 +77,7 @@ class ExprOp(str, Enum):
     def __iter__(self) -> Iterator[ExprOp]:
         return cycle([self])
 
-    def __mul__(self, n: int) -> List[ExprOp]:  # type: ignore[override]
+    def __mul__(self, n: int) -> list[ExprOp]:  # type: ignore[override]
         return [self] * n
 
     @classmethod

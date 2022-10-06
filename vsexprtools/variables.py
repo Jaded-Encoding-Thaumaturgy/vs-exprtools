@@ -3,13 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import wraps
 from typing import (
-    TYPE_CHECKING, Any, Callable, Iterable, Iterator, Literal, NoReturn, SupportsIndex, Tuple, TypeAlias, cast, overload
+    TYPE_CHECKING, Any, Callable, Iterable, Iterator, Literal, NoReturn, SupportsIndex, TypeAlias, cast, overload
 )
-
 
 from vstools import (
     ByteData, ColorRange, ColorRangeT, F, Self, get_depth, get_lowest_value, get_neutral_value, get_peak_value,
-    get_plane_sizes, scale_value
+    get_plane_sizes, scale_value, vs
 )
 
 from .operators import BaseOperator, ExprOperators
@@ -290,7 +289,7 @@ class ClipVar(ExprVar):
     # Pixel Access
     _IdxType: TypeAlias = int | ExprVar
 
-    def __getitem__(self, index: _IdxType | Tuple[_IdxType, _IdxType] | slice) -> ComputedVar:  # type: ignore
+    def __getitem__(self, index: _IdxType | tuple[_IdxType, _IdxType] | slice) -> ComputedVar:  # type: ignore
         if isinstance(index, tuple):
             x, y = index
             if isinstance(x, ExprVar) or isinstance(y, ExprVar):
