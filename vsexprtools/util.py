@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import string
-from typing import Any, List
+from typing import Any
 
-import vapoursynth as vs
-from vstools import PlanesT, core, normalize_planes, normalize_seq, to_arr
+
+from vstools import PlanesT, core, normalize_planes, normalize_seq, to_arr, EXPR_VARS, vs
 
 __all__ = [
     # VS variables
@@ -13,7 +12,6 @@ __all__ = [
     'norm_expr_planes'
 ]
 
-EXPR_VARS = (alph := list(string.ascii_lowercase))[(idx := alph.index('x')):] + alph[:idx]
 
 try:
     aka_expr_available = bool(core.akarin.Expr)
@@ -22,8 +20,8 @@ except AttributeError:
 
 
 def norm_expr_planes(
-    clip: vs.VideoNode, expr: str | List[str], planes: PlanesT = None, **kwargs: Any
-) -> List[str]:
+    clip: vs.VideoNode, expr: str | list[str], planes: PlanesT = None, **kwargs: Any
+) -> list[str]:
     assert clip.format
 
     expr_array = normalize_seq(to_arr(expr), clip.format.num_planes)

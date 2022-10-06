@@ -3,7 +3,7 @@ from __future__ import annotations
 from math import ceil
 from typing import Any, Iterable, List, Literal, Sequence, Tuple
 
-import vapoursynth as vs
+
 from vstools import PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, get_video_format, to_arr
 
 from .exprop import ExprOp
@@ -12,8 +12,6 @@ from .util import EXPR_VARS, aka_expr_available, norm_expr_planes
 __all__ = [
     'expr_func', 'combine', 'norm_expr'
 ]
-
-core = vs.core
 
 
 def expr_func(

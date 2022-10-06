@@ -5,7 +5,6 @@ from contextlib import AbstractContextManager
 from types import TracebackType
 from typing import List, NamedTuple, Sequence, Type
 
-import vapoursynth as vs
 
 from .funcs import expr_func
 from .operators import ExprOperators

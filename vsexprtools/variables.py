@@ -6,7 +6,7 @@ from typing import (
     TYPE_CHECKING, Any, Callable, Iterable, Iterator, Literal, NoReturn, SupportsIndex, Tuple, TypeAlias, cast, overload
 )
 
-import vapoursynth as vs
+
 from vstools import (
     ByteData, ColorRange, ColorRangeT, F, Self, get_depth, get_lowest_value, get_neutral_value, get_peak_value,
     get_plane_sizes, scale_value
@@ -25,8 +25,6 @@ __all__ = [
     'ComplexVar', 'ClipPropsVar',
     'resolverT', 'ExprOtherT'
 ]
-
-core = vs.core
 
 
 class ExprVar(int):
