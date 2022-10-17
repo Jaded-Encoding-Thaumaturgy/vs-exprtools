@@ -4,7 +4,7 @@ from itertools import cycle
 from math import isqrt
 from typing import Any, Iterable, Iterator, SupportsFloat
 
-from vstools import ConvMode, CustomStrEnum, StrList, flatten
+from vstools import ConvMode, CustomEnum, PlanesT, StrArrOpt, StrList, flatten, vs
 
 from .util import aka_expr_available
 
@@ -14,7 +14,13 @@ __all__ = [
 
 
 class ExprOpBase(str):
-    ...
+    def combine(
+        self, *clips: vs.VideoNode, suffix: StrArrOpt = None, prefix: StrArrOpt = None,
+        expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None, planes: PlanesT = None, **expr_kwargs: Any
+    ) -> vs.VideoNode:
+        from .funcs import combine
+
+        return combine(clips, self, suffix, prefix, expr_suffix, expr_prefix, planes, **expr_kwargs)
 
 
 class ExprOp(ExprOpBase, CustomEnum):
