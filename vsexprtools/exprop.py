@@ -13,7 +13,11 @@ __all__ = [
 ]
 
 
-class ExprOp(CustomStrEnum):
+class ExprOpBase(str):
+    ...
+
+
+class ExprOp(ExprOpBase, CustomEnum):
     # 1 Argument
     EXP = "exp"
     LOG = "log"
@@ -56,12 +60,12 @@ class ExprOp(CustomStrEnum):
     REL_PIX = '{char:s}[{x:d},{y:d}]'
     ABS_PIX = '{x:d} {y:d} {char:s}[]'
 
-    def __call__(self, *pos_args: Any, **kwargs: Any) -> str:
+    def __call__(self, *pos_args: Any, **kwargs: Any) -> ExprOpBase:
         args = list[Any](pos_args)
 
         while True:
             try:
-                return self.format(*args, **kwargs)
+                return ExprOpBase(self.format(*args, **kwargs))
             except KeyError as key:
                 try:
                     kwargs.update({str(key)[1:-1]: args.pop(0)})
