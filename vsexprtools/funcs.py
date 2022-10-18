@@ -69,7 +69,7 @@ def combine(
 
     args = zip(*normalized_args)
 
-    operators = operator * (n_clips - 1)
+    operators = operator * max(n_clips - 1, 1)
 
     return norm_expr(clips, [expr_prefix, args, operators, expr_suffix], planes, **expr_kwargs)
 
