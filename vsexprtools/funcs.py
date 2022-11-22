@@ -98,7 +98,12 @@ def norm_expr(
 
     normalized_expr = norm_expr_planes(clips[0], normalized_exprs, planes, **kwargs)
 
-    return expr_func(clips, normalized_expr, format, opt, boundary, force_akarin)
+    tokenized_expr = [
+        bitdepth_aware_tokenize_expr(clips, e, bool(is_chroma))
+        for is_chroma, e in enumerate(normalized_expr)
+    ]
+
+    return expr_func(clips, tokenized_expr, format, opt, boundary, force_akarin)
 
 
 def average_merge(*clips: Iterable[vs.VideoNode] | vs.VideoNode) -> vs.VideoNode:
