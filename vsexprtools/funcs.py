@@ -4,14 +4,17 @@ from math import ceil
 from typing import Any, Iterable, Literal, Sequence
 
 from vstools import (
-    EXPR_VARS, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core, get_video_format, to_arr, vs
+    EXPR_VARS, CustomValueError, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
+    get_video_format, to_arr, vs, flatten
 )
 
 from .exprop import ExprOp
-from .util import aka_expr_available, norm_expr_planes
+from .util import aka_expr_available, bitdepth_aware_tokenize_expr, norm_expr_planes
 
 __all__ = [
-    'expr_func', 'combine', 'norm_expr'
+    'expr_func', 'combine', 'norm_expr',
+
+    'average_merge', 'weighted_merge'
 ]
 
 
@@ -96,3 +99,26 @@ def norm_expr(
     normalized_expr = norm_expr_planes(clips[0], normalized_exprs, planes, **kwargs)
 
     return expr_func(clips, normalized_expr, format, opt, boundary, force_akarin)
+
+
+def average_merge(*clips: Iterable[vs.VideoNode] | vs.VideoNode) -> vs.VideoNode:
+    flat_clips = list[vs.VideoNode](flatten(clips))  # type: ignore
+    length = len(flat_clips)
+
+    return weighted_merge((clip, 1 / length) for clip in flat_clips)
+
+
+def weighted_merge(*weighted_clips: Iterable[tuple[vs.VideoNode, float]] | tuple[vs.VideoNode, float]) -> vs.VideoNode:
+    flat_clips = []
+
+    for clip in weighted_clips:
+        if isinstance(clip, tuple):
+            flat_clips.append(clip)
+        else:
+            flat_clips.extend(list(clip))
+
+    assert len(flat_clips) <= len(EXPR_VARS), CustomValueError("Too many clips!", weighted_merge)
+
+    clips, weights = zip(*flat_clips)
+
+    return combine(clips, ExprOp.ADD, zip(weights, ExprOp.MUL), expr_suffix=[sum(weights), ExprOp.DIV])
