@@ -55,9 +55,9 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> list[SupportsString]:
     if ffix is None:
         return [''] * n_clips
 
-    ffix = [ffix] if isinstance(ffix, (str, tuple)) else list(ffix)
+    ffix = [ffix] if isinstance(ffix, (str, tuple)) else list(ffix)  # type: ignore
 
-    return ffix * max(1, ceil(n_clips / len(ffix)))
+    return ffix * max(1, ceil(n_clips / len(ffix)))  # type: ignore
 
 
 def combine(
@@ -83,9 +83,9 @@ def norm_expr(
     boundary: bool = False, force_akarin: Literal[False] | str = False, **kwargs: Any
 ) -> vs.VideoNode:
     if isinstance(clips, vs.VideoNode):
-        clips = [clips]
+        clips = [clips]  # type: ignore
     else:
-        clips = list(clips)
+        clips = list(clips)  # type: ignore
 
     if isinstance(expr, str):
         nexpr = tuple([[expr]])
