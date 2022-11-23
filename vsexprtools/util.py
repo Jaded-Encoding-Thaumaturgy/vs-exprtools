@@ -68,8 +68,6 @@ def bitdepth_aware_tokenize_expr(
         if mkey in expr:
             raise CustomIndexError('Parsing error or not enough clips passed!', func, reason=expr)
 
-    print(expr)
-
     return expr
 
 
