@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from itertools import count
 from typing import Any, Iterable, Iterator, Sequence, SupportsIndex, overload
 
 from vstools import (
     EXPR_VARS, MISSING, ColorRange, CustomIndexError, CustomNotImplementedError, CustomRuntimeError, FuncExceptT,
-    MissingT, PlanesT, core, get_lowest_value, get_neutral_value, get_peak_value, normalize_planes, normalize_seq,
-    to_arr, vs
+    MissingT, PlanesT, classproperty, core, get_lowest_value, get_neutral_value, get_peak_value, normalize_planes,
+    normalize_seq, to_arr, vs
 )
 
 __all__ = [
@@ -158,6 +159,11 @@ class _ExprVars(Iterable[str]):
 
     def __str__(self) -> str:
         return ' '.join(iter(self))
+
+    @classproperty
+    def cycle(cls) -> Iterator[str]:
+        for x in count():
+            yield cls.get_var(x)
 
 
 ExprVars: _ExprVars = _ExprVars  # type: ignore
