@@ -5,11 +5,12 @@ from contextlib import AbstractContextManager
 from types import TracebackType
 from typing import NamedTuple, Sequence
 
-from vstools import EXPR_VARS, vs
+from vstools import vs
 
 from .funcs import expr_func
 from .operators import ExprOperators
 from .polyfills import global_builtins, global_builtins_expr
+from .util import ExprVars
 from .variables import ClipVar, ComputedVar, ExprVar
 
 __all__ = [
@@ -34,7 +35,7 @@ class inline_expr(AbstractContextManager[InlineExpr]):
 
         self._clips = list(clips) if isinstance(clips, Sequence) else [clips]
         self._clips_char_map = list(
-            ClipVar(char, clip, self) for char, clip in zip(EXPR_VARS, self._clips)
+            ClipVar(char, clip, self) for char, clip in zip(ExprVars.cycle, self._clips)
         )
 
         self._final_clip = None
