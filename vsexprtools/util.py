@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import Any, Iterable, Iterator, Sequence, SupportsIndex, overload
 
 from vstools import (
-    EXPR_VARS, ColorRange, PlanesT, core, get_lowest_value, get_neutral_value, get_peak_value, normalize_planes,
-    normalize_seq, to_arr, vs, CustomIndexError, FuncExceptT
+    EXPR_VARS, MISSING, ColorRange, CustomIndexError, CustomNotImplementedError, CustomRuntimeError, FuncExceptT,
+    MissingT, PlanesT, core, get_lowest_value, get_neutral_value, get_peak_value, normalize_planes, normalize_seq,
+    to_arr, vs
 )
 
 __all__ = [
     # VS variables
     'EXPR_VARS', 'aka_expr_available',
     # Expr helpers
-    'bitdepth_aware_tokenize_expr',
+    'ExprVars', 'bitdepth_aware_tokenize_expr',
     # VS helpers
     'norm_expr_planes'
 ]
@@ -21,6 +22,145 @@ try:
     aka_expr_available = bool(core.akarin.Expr)
 except AttributeError:
     aka_expr_available = False
+
+
+class _ExprVars(Iterable[str]):
+    @overload
+    def __init__(self, stop: SupportsIndex, /, *, akarin: bool | None = None) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self, start: SupportsIndex, stop: SupportsIndex, step: SupportsIndex = 1, /, *, akarin: bool | None = None
+    ) -> None:
+        ...
+
+    def __init__(
+        self, start_stop: SupportsIndex, stop: SupportsIndex | MissingT = MISSING, step: SupportsIndex = 1,
+        /, *, akarin: bool | None = None
+    ) -> None:
+        if stop is MISSING:
+            self.start = 0
+            self.stop = start_stop.__index__()
+        else:
+            self.start = start_stop.__index__()
+            self.stop = stop.__index__()
+
+        self.step = step.__index__()
+
+        if self.start < 0:
+            raise CustomIndexError('"start" must be bigger or equal than 0!')
+        elif self.stop <= self.start:
+            raise CustomIndexError('"stop" must be bigger than "start"!')
+
+        self.akarin = self._check_akarin(self.stop, akarin)
+
+        self.curr = self.start
+
+    @overload
+    def __call__(self, stop: SupportsIndex, /, *, akarin: bool | None = None) -> _ExprVars:
+        ...
+
+    @overload
+    def __call__(
+        self, start: SupportsIndex, stop: SupportsIndex, step: SupportsIndex = 1, /, *, akarin: bool | None = None
+    ) -> _ExprVars:
+        ...
+
+    def __call__(
+        self, start_stop: SupportsIndex, stop: SupportsIndex | MissingT = MISSING, step: SupportsIndex = 1,
+        /, *, akarin: bool | None = None
+    ) -> _ExprVars:
+        return ExprVars(start_stop, stop, step, akarin=akarin)  # type: ignore
+
+    def __iter__(self) -> Iterator[str]:
+        indices = range(self.start, self.stop, self.step)
+
+        if self.akarin:
+            return (f'src{x}' for x in indices)
+
+        return (EXPR_VARS[x] for x in indices)
+
+    def __next__(self) -> str:
+        if self.curr >= self.stop:
+            raise StopIteration
+
+        var = f'src{self.curr}' if self.akarin else EXPR_VARS[self.curr]
+
+        self.curr += self.step
+
+        return var
+
+    @classmethod
+    def _check_akarin(cls, stop: SupportsIndex, akarin: bool | None = None) -> bool:
+        stop = stop.__index__()
+
+        if akarin is None:
+            akarin = stop > 26
+
+        if akarin and not aka_expr_available:
+            raise cls._get_akarin_err(
+                'You are trying to get more than 26 variables or srcX vars, you need akarin plugin!'
+            )
+
+        return akarin
+
+    @classmethod
+    def get_var(cls, value: SupportsIndex, akarin: bool | None = None) -> str:
+        value = value.__index__()
+
+        if value < 0:
+            raise CustomIndexError('"value" should be bigger than 0!')
+
+        akarin = cls._check_akarin(value, akarin)
+
+        return f'src{value}' if akarin else EXPR_VARS[value]
+
+    @classmethod
+    def _get_akarin_err(cls, message: str) -> CustomRuntimeError:
+        return CustomRuntimeError(f'{message}\nDownload it from https://github.com/AkarinVS/vapoursynth-plugin')
+
+    @overload
+    def __class_getitem__(cls, index: SupportsIndex | tuple[SupportsIndex, bool], /) -> str:
+        ...
+
+    @overload
+    def __class_getitem__(cls, slice: slice | tuple[slice, bool], /) -> list[str]:
+        ...
+
+    def __class_getitem__(
+        cls, idx_slice: SupportsIndex | slice | tuple[SupportsIndex | slice, bool], /,
+    ) -> str | list[str]:
+        if isinstance(idx_slice, tuple):
+            idx_slice, akarin = idx_slice
+        else:
+            akarin = None
+
+        if isinstance(idx_slice, slice):
+            return list(ExprVars(idx_slice.start, idx_slice.stop, idx_slice.step))
+        elif isinstance(idx_slice, SupportsIndex):
+            return list(ExprVars.get_var(idx_slice.__index__(), akarin))
+
+        raise CustomNotImplementedError
+
+    @overload
+    def __getitem__(self, index: SupportsIndex | tuple[SupportsIndex, bool], /) -> str:
+        ...
+
+    @overload
+    def __getitem__(self, slice: slice | tuple[slice, bool], /) -> list[str]:
+        ...
+
+    def __getitem__(  # type: ignore
+        self, idx_slice: SupportsIndex | slice | tuple[SupportsIndex | slice, bool], /,
+    ) -> str | list[str]:
+        ...
+
+    def __str__(self) -> str:
+        return ' '.join(iter(self))
+
+
+ExprVars: _ExprVars = _ExprVars  # type: ignore
 
 
 def bitdepth_aware_tokenize_expr(

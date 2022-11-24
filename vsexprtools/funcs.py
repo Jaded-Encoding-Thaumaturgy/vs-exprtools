@@ -4,12 +4,12 @@ from math import ceil
 from typing import Any, Iterable, Literal, Sequence
 
 from vstools import (
-    EXPR_VARS, CustomValueError, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
-    get_video_format, to_arr, vs, flatten, CustomRuntimeError, FuncExceptT
+    EXPR_VARS, CustomValueError, FuncExceptT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
+    flatten, get_video_format, to_arr, vs
 )
 
 from .exprop import ExprOp
-from .util import aka_expr_available, bitdepth_aware_tokenize_expr, norm_expr_planes
+from .util import ExprVars, aka_expr_available, bitdepth_aware_tokenize_expr, norm_expr_planes
 
 __all__ = [
     'expr_func', 'combine', 'norm_expr',
@@ -28,15 +28,9 @@ def expr_func(
 
     if not aka_expr_available:
         if force_akarin or over_clips:
-            raise CustomRuntimeError(
-                'This function only works with akarin plugin!\n'
-                'Download it from https://github.com/AkarinVS/vapoursynth-plugin', func
-            )
+            raise ExprVars._get_akarin_err('This function only works with akarin plugin!')(func=func)
     elif over_clips and b'src26' not in vs.core.akarin.Version()['expr_features']:  # type: ignore
-        raise CustomRuntimeError(
-            'You need at lest v0.96 of akarin plugin!\n'
-            'Download it from https://github.com/AkarinVS/vapoursynth-plugin', func
-        )
+        raise ExprVars._get_akarin_err('You need at lest v0.96 of akarin plugin!')(func=func)
 
     fmt = None if format is None else get_video_format(format).id
 
