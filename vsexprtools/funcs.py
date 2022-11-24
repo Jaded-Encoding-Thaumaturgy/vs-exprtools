@@ -4,7 +4,7 @@ from math import ceil
 from typing import Any, Iterable, Literal, Sequence
 
 from vstools import (
-    EXPR_VARS, FuncExceptT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
+    FuncExceptT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
     flatten, get_video_format, to_arr, vs
 )
 
@@ -71,7 +71,7 @@ def combine(
 
     prefixes, suffixes = (_combine_norm__ix(x, n_clips) for x in (prefix, suffix))
 
-    normalized_args = [to_arr(x)[:n_clips + 1] for x in (prefixes, EXPR_VARS, suffixes)]
+    normalized_args = [to_arr(x)[:n_clips + 1] for x in (prefixes, ExprVars.cycle, suffixes)]
 
     args = zip(*normalized_args)
 
