@@ -4,7 +4,7 @@ from math import ceil
 from typing import Any, Iterable, Literal, Sequence
 
 from vstools import (
-    EXPR_VARS, CustomValueError, FuncExceptT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
+    EXPR_VARS, FuncExceptT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
     flatten, get_video_format, to_arr, vs
 )
 
@@ -124,8 +124,6 @@ def weighted_merge(*weighted_clips: Iterable[tuple[vs.VideoNode, float]] | tuple
             flat_clips.append(clip)
         else:
             flat_clips.extend(list(clip))
-
-    assert len(flat_clips) <= len(EXPR_VARS), CustomValueError("Too many clips!", weighted_merge)
 
     clips, weights = zip(*flat_clips)
 
