@@ -111,9 +111,10 @@ def norm_expr(
 
 def average_merge(*clips: Iterable[vs.VideoNode] | vs.VideoNode) -> vs.VideoNode:
     flat_clips = list[vs.VideoNode](flatten(clips))  # type: ignore
+
     length = len(flat_clips)
 
-    return weighted_merge((clip, 1 / length) for clip in flat_clips)
+    return combine(flat_clips, ExprOp.ADD, zip(((1 / length, ) * length), ExprOp.MUL))
 
 
 def weighted_merge(*weighted_clips: Iterable[tuple[vs.VideoNode, float]] | tuple[vs.VideoNode, float]) -> vs.VideoNode:
