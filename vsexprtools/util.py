@@ -112,7 +112,7 @@ class _ExprVars(Iterable[str]):
         if value < 0:
             raise CustomIndexError('"value" should be bigger than 0!')
 
-        akarin = cls._check_akarin(value, akarin)
+        akarin = cls._check_akarin(value + 1, akarin)
 
         return f'src{value}' if akarin else EXPR_VARS[value]
 
