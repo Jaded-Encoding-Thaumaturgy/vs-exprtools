@@ -30,7 +30,7 @@ def expr_func(
         if force_akarin or over_clips:
             raise ExprVars._get_akarin_err('This function only works with akarin plugin!')(func=func)
     elif over_clips and b'src26' not in vs.core.akarin.Version()['expr_features']:  # type: ignore
-        raise ExprVars._get_akarin_err('You need at lest v0.96 of akarin plugin!')(func=func)
+        raise ExprVars._get_akarin_err('You need at least v0.96 of akarin plugin!')(func=func)
 
     fmt = None if format is None else get_video_format(format).id
 
