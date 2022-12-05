@@ -140,7 +140,7 @@ class _ExprVars(Iterable[str]):
         if isinstance(idx_slice, slice):
             return list(ExprVars(idx_slice.start, idx_slice.stop, idx_slice.step))
         elif isinstance(idx_slice, SupportsIndex):
-            return list(ExprVars.get_var(idx_slice.__index__(), akarin))
+            return ExprVars.get_var(idx_slice.__index__(), akarin)
 
         raise CustomNotImplementedError
 
