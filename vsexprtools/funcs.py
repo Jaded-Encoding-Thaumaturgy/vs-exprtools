@@ -81,7 +81,7 @@ def combine(
 def norm_expr(
     clips: vs.VideoNode | Iterable[vs.VideoNode], expr: str | StrArr | tuple[str | StrArr, ...],
     planes: PlanesT = None, format: VideoFormatT | None = None, opt: bool | None = None,
-    boundary: bool = False, force_akarin: Literal[False] | str = False, **kwargs: Any
+    boundary: bool = False, force_akarin: Literal[False] | FuncExceptT = False, **kwargs: Any
 ) -> vs.VideoNode:
     if isinstance(clips, vs.VideoNode):
         clips = [clips]  # type: ignore
