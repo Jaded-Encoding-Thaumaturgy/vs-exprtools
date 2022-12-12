@@ -5,7 +5,7 @@ from typing import Any, Iterable, Literal, Sequence
 
 from vstools import (
     FuncExceptT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
-    flatten, get_video_format, to_arr, vs
+    flatten, get_video_format, to_arr, vs, HoldsVideoFormatT
 )
 
 from .exprop import ExprOp
@@ -20,7 +20,7 @@ __all__ = [
 
 def expr_func(
     clips: vs.VideoNode | Sequence[vs.VideoNode], expr: str | Sequence[str],
-    format: VideoFormatT | None = None, opt: bool | None = None, boundary: bool = False,
+    format: HoldsVideoFormatT | VideoFormatT | None = None, opt: bool | None = None, boundary: bool = False,
     force_akarin: Literal[False] | FuncExceptT = False
 ) -> vs.VideoNode:
     func = force_akarin or expr_func
@@ -79,14 +79,11 @@ def combine(
 
 
 def norm_expr(
-    clips: vs.VideoNode | Iterable[vs.VideoNode], expr: str | StrArr | tuple[str | StrArr, ...],
-    planes: PlanesT = None, format: VideoFormatT | None = None, opt: bool | None = None,
+    clips: vs.VideoNode | Iterable[vs.VideoNode | Iterable[vs.VideoNode]], expr: str | StrArr | tuple[str | StrArr, ...],
+    planes: PlanesT = None, format: HoldsVideoFormatT | VideoFormatT | None = None, opt: bool | None = None,
     boundary: bool = False, force_akarin: Literal[False] | FuncExceptT = False, **kwargs: Any
 ) -> vs.VideoNode:
-    if isinstance(clips, vs.VideoNode):
-        clips = [clips]  # type: ignore
-    else:
-        clips = list(clips)  # type: ignore
+    clips = list[vs.VideoNode](flatten(clips))  # type: ignore
 
     if isinstance(expr, str):
         nexpr = tuple([[expr]])
