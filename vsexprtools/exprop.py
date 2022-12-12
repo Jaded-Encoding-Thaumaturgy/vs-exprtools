@@ -104,8 +104,8 @@ class ExprToken(ExprTokenBase, CustomEnum):
 
 
 class ExprOpBase(str):
-    def combine(
-        self, *clips: vs.VideoNode, suffix: StrArrOpt = None, prefix: StrArrOpt = None,
+    def combine(  # type: ignore
+        self: ExprOp, *clips: vs.VideoNode, suffix: StrArrOpt = None, prefix: StrArrOpt = None,
         expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None, planes: PlanesT = None, **expr_kwargs: Any
     ) -> vs.VideoNode:
         from .funcs import combine
