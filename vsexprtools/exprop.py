@@ -239,26 +239,23 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         rel_pixels = cls.matrix(var, radius, mode)
 
-        output = StrList([])
-
-        expr_conv = [
+        output = StrList([
             rel_pix if weight == 1 else [rel_pix, weight, ExprOp.MUL]
             for rel_pix, weight in zip(rel_pixels, convolution)
             if weight != 0
-        ]
+        ])
 
-        output.extend(expr_conv)
-        output.extend(ExprOp.ADD * (len(expr_conv) - 1))
+        output.extend(ExprOp.ADD * output.mlength)
 
         if divisor is not False:
             if divisor is True:
                 divisor = sum(map(float, convolution))
 
             if divisor not in {0, 1}:
-                output.extend([divisor, ExprOp.DIV])
+                output.append(divisor, ExprOp.DIV)
 
         if bias is not None:
-            output.extend([bias, ExprOp.ADD])
+            output.append(bias, ExprOp.ADD)
 
         if not saturate:
             output.append(ExprOp.ABS)
