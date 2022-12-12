@@ -2,15 +2,105 @@ from __future__ import annotations
 
 from itertools import cycle
 from math import isqrt
-from typing import Any, Iterable, Iterator, SupportsFloat
+from typing import Any, Iterable, Iterator, SupportsFloat, SupportsIndex
 
-from vstools import ConvMode, CustomEnum, PlanesT, StrArrOpt, StrList, flatten, vs
+from vstools import (
+    ColorRange, ConvMode, CustomEnum, PlanesT, StrArrOpt, StrList, flatten, get_lowest_value, get_neutral_value,
+    get_peak_value, vs
+)
 
-from .util import aka_expr_available
+from .util import ExprVars, aka_expr_available
 
 __all__ = [
-    'ExprOp'
+    'ExprOp', 'ExprToken'
 ]
+
+
+class ExprTokenBase(str):
+    value: str
+
+
+class ExprToken(ExprTokenBase, CustomEnum):
+    LumaMin = 'ymin'
+    ChromaMin = 'cmin'
+    Lumamax = 'ymax'
+    Chromamax = 'cmax'
+    RangeHalf = 'range_half'
+    RangeSize = 'range_size'
+    RangeMin = 'range_min'
+    LumaRangeMin = 'yrange_min'
+    ChromaRangeMin = 'crange_min'
+    RangeMax = 'range_max'
+    LumaRangeMax = 'yrange_max'
+    ChromaRangeMax = 'crange_max'
+    RangeInMin = 'range_in_min'
+    LumaRangeInMin = 'yrange_in_min'
+    ChromaRangeInMin = 'crange_in_min'
+    RangeInMax = 'range_in_max'
+    LumaRangeInMax = 'yrange_in_max'
+    ChromaRangeInMax = 'crange_in_max'
+
+    @property
+    def is_chroma(self) -> bool:
+        return 'chroma' in self._name_.lower()
+
+    def get_value(self, clip: vs.VideoNode, chroma: bool = False, range_in: ColorRange = ColorRange.LIMITED) -> float:
+        if self is ExprToken.LumaMin:
+            return get_lowest_value(clip, False, ColorRange.LIMITED)
+
+        if self is ExprToken.ChromaMin:
+            return get_lowest_value(clip, True, ColorRange.LIMITED)
+
+        if self is ExprToken.Lumamax:
+            return get_peak_value(clip, False, ColorRange.LIMITED)
+
+        if self is ExprToken.Chromamax:
+            return get_peak_value(clip, True, ColorRange.LIMITED)
+
+        if self is ExprToken.RangeHalf:
+            return get_neutral_value(clip, chroma)
+
+        if self is ExprToken.RangeSize:
+            return (val := get_peak_value(clip)) + (1 - (val <= 1.0))
+
+        if self is ExprToken.RangeMin:
+            return get_lowest_value(clip, chroma)
+
+        if self is ExprToken.LumaRangeMin:
+            return get_lowest_value(clip, False)
+
+        if self is ExprToken.ChromaRangeMin:
+            return get_lowest_value(clip, True)
+
+        if self is ExprToken.RangeMax:
+            return get_peak_value(clip, chroma)
+
+        if self is ExprToken.LumaRangeMax:
+            return get_peak_value(clip, False)
+
+        if self is ExprToken.ChromaRangeMax:
+            return get_peak_value(clip, True)
+
+        if self is ExprToken.RangeInMin:
+            return get_lowest_value(clip, chroma, range_in)
+
+        if self is ExprToken.LumaRangeInMin:
+            return get_lowest_value(clip, False, range_in)
+
+        if self is ExprToken.ChromaRangeInMin:
+            return get_lowest_value(clip, True, range_in)
+
+        if self is ExprToken.RangeInMax:
+            return get_peak_value(clip, chroma, range_in)
+
+        if self is ExprToken.LumaRangeInMax:
+            return get_peak_value(clip, False, range_in)
+
+        if self is ExprToken.ChromaRangeInMax:
+            return get_peak_value(clip, True, range_in)
+
+    def __getitem__(self, __i: SupportsIndex) -> ExprToken:  # type: ignore
+        return ExprTokenBase(f'{self.value}_{ExprVars[__i]}')  # type: ignore
 
 
 class ExprOpBase(str):

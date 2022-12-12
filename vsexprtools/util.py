@@ -5,8 +5,7 @@ from typing import Any, Iterable, Iterator, Sequence, SupportsIndex, overload
 
 from vstools import (
     EXPR_VARS, MISSING, ColorRange, CustomIndexError, CustomNotImplementedError, CustomRuntimeError, FuncExceptT,
-    MissingT, PlanesT, classproperty, core, get_lowest_value, get_neutral_value, get_peak_value, normalize_planes,
-    normalize_seq, to_arr, vs
+    MissingT, PlanesT, classproperty, core, normalize_planes, normalize_seq, to_arr, vs
 )
 
 __all__ = [
@@ -172,31 +171,14 @@ ExprVars: _ExprVars = _ExprVars  # type: ignore
 def bitdepth_aware_tokenize_expr(
     clips: Sequence[vs.VideoNode], expr: str, chroma: bool, func: FuncExceptT | None = None
 ) -> str:
+    from .exprop import ExprToken
+
     func = func or bitdepth_aware_tokenize_expr
 
     if not expr or len(expr) < 4:
         return expr
 
-    replaces = [
-        ('ymin', lambda clip, _: get_lowest_value(clip, False, ColorRange.LIMITED)),
-        ('cmin', lambda clip, _: get_lowest_value(clip, True, ColorRange.LIMITED)),
-        ('ymax', lambda clip, _: get_peak_value(clip, False, ColorRange.LIMITED)),
-        ('cmax', lambda clip, _: get_peak_value(clip, True, ColorRange.LIMITED)),
-        ('range_half', lambda clip, _: get_neutral_value(clip, chroma)),
-        ('range_size', lambda clip, _: (val := get_peak_value(clip)) + (1 - (val <= 1.0))),
-        ('range_min', lambda clip, _: get_lowest_value(clip, chroma)),
-        ('yrange_min', lambda clip, _: get_lowest_value(clip, False)),
-        ('crange_min', lambda clip, _: get_lowest_value(clip, True)),
-        ('range_max', lambda clip, _: get_peak_value(clip, chroma)),
-        ('yrange_max', lambda clip, _: get_peak_value(clip, False)),
-        ('crange_max', lambda clip, _: get_peak_value(clip, True)),
-        ('range_in_min', lambda clip, crange: get_lowest_value(clip, chroma, crange)),
-        ('yrange_in_min', lambda clip, crange: get_lowest_value(clip, False, crange)),
-        ('crange_in_min', lambda clip, crange: get_lowest_value(clip, True, crange)),
-        ('range_in_max', lambda clip, crange: get_peak_value(clip, chroma, crange)),
-        ('yrange_in_max', lambda clip, crange: get_peak_value(clip, False, crange)),
-        ('crange_in_max', lambda clip, crange: get_peak_value(clip, True, crange)),
-    ]
+    replaces = [(x.value, x.get_value) for x in ExprToken]
 
     clips = list(clips)
     ranges = [ColorRange.from_video(c, func=func) for c in clips]
@@ -209,7 +191,7 @@ def bitdepth_aware_tokenize_expr(
                 (f'{mkey}_{k} ' if k else f'{mkey} ', clip, crange)
                 for k, clip, crange in mapped_clips
             ]:
-                expr = expr.replace(key, str(function(clip, crange) * 1.0) + ' ')
+                expr = expr.replace(key, str(function(clip, chroma, crange) * 1.0) + ' ')
 
         if mkey in expr:
             raise CustomIndexError('Parsing error or not enough clips passed!', func, reason=expr)
