@@ -64,9 +64,12 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> list[SupportsString]:
 
 
 def combine(
-    clips: Sequence[vs.VideoNode], operator: ExprOp = ExprOp.MAX, suffix: StrArrOpt = None, prefix: StrArrOpt = None,
-    expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None, planes: PlanesT = None, **expr_kwargs: Any
+    clips: vs.VideoNode | Iterable[vs.VideoNode | Iterable[vs.VideoNode]], operator: ExprOp = ExprOp.MAX,
+    suffix: StrArrOpt = None, prefix: StrArrOpt = None, expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None,
+    planes: PlanesT = None, **expr_kwargs: Any
 ) -> vs.VideoNode:
+    clips = list[vs.VideoNode](flatten(clips))
+
     n_clips = len(clips)
 
     prefixes, suffixes = (_combine_norm__ix(x, n_clips) for x in (prefix, suffix))
