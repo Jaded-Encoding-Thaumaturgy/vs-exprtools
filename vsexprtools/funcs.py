@@ -5,7 +5,7 @@ from typing import Any, Iterable, Literal, Sequence
 
 from vstools import (
     FuncExceptT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
-    flatten, get_video_format, to_arr, vs, HoldsVideoFormatT
+    flatten, get_video_format, to_arr, vs, HoldsVideoFormatT, CustomRuntimeError
 )
 
 from .exprop import ExprOp
@@ -21,9 +21,9 @@ __all__ = [
 def expr_func(
     clips: vs.VideoNode | Sequence[vs.VideoNode], expr: str | Sequence[str],
     format: HoldsVideoFormatT | VideoFormatT | None = None, opt: bool | None = None, boundary: bool = False,
-    force_akarin: Literal[False] | FuncExceptT = False
+    force_akarin: Literal[False] | FuncExceptT = False, func: FuncExceptT | None = None
 ) -> vs.VideoNode:
-    func = force_akarin or expr_func
+    func = func or force_akarin or expr_func
     over_clips = len(clips) > 26
 
     if not aka_expr_available:
@@ -45,13 +45,12 @@ def expr_func(
             return core.akarin.Expr(clips, expr, fmt, opt, boundary)
 
         return core.std.Expr(clips, expr, fmt)
-    except BaseException as e:
-        raise RuntimeError(
+    except Exception:
+        raise CustomRuntimeError(
             'There was an error when evaluating the expression:\n' + (
                 '' if aka_expr_available else 'You might need akarin-plugin, and are missing it.'
-            )
-
-        ) from e
+            ), func, f'\n{expr}\n'
+        )
 
 
 def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> list[SupportsString]:
