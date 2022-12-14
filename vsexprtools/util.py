@@ -117,7 +117,7 @@ class _ExprVars(Iterable[str]):
         return f'src{value}' if akarin else EXPR_VARS[value]
 
     @classmethod
-    def _get_akarin_err(cls, message: str) -> CustomRuntimeError:
+    def _get_akarin_err(cls, message: str = 'You need the akarin plugin to run this function!') -> CustomRuntimeError:
         return CustomRuntimeError(f'{message}\nDownload it from https://github.com/AkarinVS/vapoursynth-plugin')
 
     @overload
