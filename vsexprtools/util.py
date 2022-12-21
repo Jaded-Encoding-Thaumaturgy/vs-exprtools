@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from itertools import count
-from typing import Any, Iterable, Iterator, Sequence, SupportsIndex, overload
+from typing import Any, Iterable, Iterator, Sequence, SupportsIndex, TypeAlias, overload
 
 from vstools import (
     EXPR_VARS, MISSING, ColorRange, CustomIndexError, CustomNotImplementedError, CustomRuntimeError, FuncExceptT,
@@ -12,7 +12,7 @@ __all__ = [
     # VS variables
     'EXPR_VARS', 'aka_expr_available',
     # Expr helpers
-    'ExprVars', 'bitdepth_aware_tokenize_expr',
+    'ExprVars', 'ExprVarsT', 'bitdepth_aware_tokenize_expr',
     # VS helpers
     'norm_expr_planes'
 ]
@@ -166,6 +166,7 @@ class _ExprVars(Iterable[str]):
 
 
 ExprVars: _ExprVars = _ExprVars  # type: ignore
+ExprVarsT: TypeAlias = _ExprVars
 
 
 def bitdepth_aware_tokenize_expr(
