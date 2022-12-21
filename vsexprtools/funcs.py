@@ -4,8 +4,8 @@ from math import ceil
 from typing import Any, Iterable, Literal, Sequence
 
 from vstools import (
-    FuncExceptT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT, core,
-    flatten, get_video_format, to_arr, vs, HoldsVideoFormatT, CustomRuntimeError
+    CustomRuntimeError, FuncExceptT, HoldsVideoFormatT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString,
+    VideoFormatT, VideoNodeIterable, core, flatten_vnodes, get_video_format, to_arr, vs
 )
 
 from .exprop import ExprOp
@@ -63,11 +63,11 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> list[SupportsString]:
 
 
 def combine(
-    clips: vs.VideoNode | Iterable[vs.VideoNode | Iterable[vs.VideoNode]], operator: ExprOp = ExprOp.MAX,
-    suffix: StrArrOpt = None, prefix: StrArrOpt = None, expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None,
+    clips: VideoNodeIterable, operator: ExprOp = ExprOp.MAX, suffix: StrArrOpt = None,
+    prefix: StrArrOpt = None, expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None,
     planes: PlanesT = None, **expr_kwargs: Any
 ) -> vs.VideoNode:
-    clips = list[vs.VideoNode](flatten(clips))
+    clips = flatten_vnodes(clips)
 
     n_clips = len(clips)
 
@@ -81,12 +81,11 @@ def combine(
 
 
 def norm_expr(
-    clips: vs.VideoNode | Iterable[vs.VideoNode | Iterable[vs.VideoNode]],
-    expr: str | StrArr | tuple[str | StrArr, ...], planes: PlanesT = None,
+    clips: VideoNodeIterable, expr: str | StrArr | tuple[str | StrArr, ...], planes: PlanesT = None,
     format: HoldsVideoFormatT | VideoFormatT | None = None, opt: bool | None = None,
     boundary: bool = False, force_akarin: Literal[False] | FuncExceptT = False, **kwargs: Any
 ) -> vs.VideoNode:
-    clips = list[vs.VideoNode](flatten(clips))
+    clips = flatten_vnodes(clips)
 
     if isinstance(expr, str):
         nexpr = tuple([[expr]])
@@ -107,8 +106,8 @@ def norm_expr(
     return expr_func(clips, tokenized_expr, format, opt, boundary, force_akarin)
 
 
-def average_merge(*clips: Iterable[vs.VideoNode] | vs.VideoNode) -> vs.VideoNode:
-    flat_clips = list[vs.VideoNode](flatten(clips))  # type: ignore
+def average_merge(*clips: VideoNodeIterable) -> vs.VideoNode:
+    flat_clips = flatten_vnodes(clips)
 
     length = len(flat_clips)
 
