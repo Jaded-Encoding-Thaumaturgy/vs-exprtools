@@ -300,6 +300,7 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         return expr
 
+    @classmethod
     def mae(cls, planesa: ExprVarRangeT, planesb: ExprVarRangeT | None = None) -> ExprList:
         planesa, planesb = cls._parse_planes(planesa, planesb, cls.rmse)
         expr = ExprList()
