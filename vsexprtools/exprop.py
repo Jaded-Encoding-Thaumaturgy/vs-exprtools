@@ -9,7 +9,7 @@ from vstools import (
     get_lowest_value, get_neutral_value, get_peak_value, vs
 )
 
-from .util import ExprVars, ExprVarsT, aka_expr_available
+from .util import ExprVars, ExprVarsT, ExprVarRangeT, aka_expr_available
 
 __all__ = [
     'ExprOp', 'ExprToken'
@@ -265,14 +265,13 @@ class ExprOp(ExprOpBase, CustomEnum):
 
     @staticmethod
     def _parse_planes(
-        planesa: ExprVarsT | int, planesb: ExprVarsT | int | None, func: FuncExceptT
+        planesa: ExprVarRangeT, planesb: ExprVarRangeT | None, func: FuncExceptT
     ) -> tuple[ExprVarsT, ExprVarsT]:
-        if not isinstance(planesa, ExprVarsT):
-            planesa = ExprVars(planesa)
+        planesa = ExprVars(planesa)
 
         if planesb is None:
             planesb = ExprVars(planesa.stop, planesa.stop + len(planesa))
-        elif not isinstance(planesb, ExprVarsT):
+        else:
             planesb = ExprVars(planesb)
 
         if len(planesa) != len(planesb):
@@ -281,7 +280,7 @@ class ExprOp(ExprOpBase, CustomEnum):
         return planesa, planesb
 
     @classmethod
-    def rmse(cls, planesa: ExprVarsT | int, planesb: ExprVarsT | int | None = None) -> StrList:
+    def rmse(cls, planesa: ExprVarRangeT, planesb: ExprVarRangeT | None = None) -> StrList:
         planesa, planesb = cls._parse_planes(planesa, planesb, cls.rmse)
 
         expr = StrList()
@@ -293,7 +292,7 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         return expr
 
-    def mae(cls, planesa: ExprVarsT | int, planesb: ExprVarsT | int | None = None) -> StrList:
+    def mae(cls, planesa: ExprVarRangeT, planesb: ExprVarRangeT | None = None) -> StrList:
         planesa, planesb = cls._parse_planes(planesa, planesb, cls.rmse)
         expr = StrList()
 

@@ -5,14 +5,14 @@ from typing import Any, Iterable, Iterator, Sequence, SupportsIndex, TypeAlias, 
 
 from vstools import (
     EXPR_VARS, MISSING, ColorRange, CustomIndexError, CustomNotImplementedError, CustomRuntimeError, FuncExceptT,
-    MissingT, PlanesT, classproperty, core, normalize_planes, normalize_seq, to_arr, vs
-)
+    HoldsVideoFormatT, MissingT, PlanesT, VideoFormatT, classproperty, core, get_video_format, normalize_planes,
+    normalize_seq, to_arr, vs)
 
 __all__ = [
     # VS variables
     'EXPR_VARS', 'aka_expr_available',
     # Expr helpers
-    'ExprVars', 'ExprVarsT', 'bitdepth_aware_tokenize_expr',
+    'ExprVars', 'ExprVarsT', 'ExprVarRangeT', 'bitdepth_aware_tokenize_expr',
     # VS helpers
     'norm_expr_planes'
 ]
@@ -25,8 +25,14 @@ except AttributeError:
 
 
 class _ExprVars(Iterable[str]):
+    start: int
+    stop: int
+    step: int
+    curr: int
+    akarin: bool
+
     @overload
-    def __init__(self, stop: SupportsIndex, /, *, akarin: bool | None = None) -> None:
+    def __init__(self, stop: SupportsIndex | ExprVarRangeT, /, *, akarin: bool | None = None) -> None:
         ...
 
     @overload
@@ -36,12 +42,22 @@ class _ExprVars(Iterable[str]):
         ...
 
     def __init__(
-        self, start_stop: SupportsIndex, stop: SupportsIndex | MissingT = MISSING, step: SupportsIndex = 1,
-        /, *, akarin: bool | None = None
+        self, start_stop: SupportsIndex | ExprVarRangeT, stop: SupportsIndex | MissingT = MISSING,
+        step: SupportsIndex = 1, /, *, akarin: bool | None = None
     ) -> None:
+        if isinstance(start_stop, ExprVarsT):
+            self.start = start_stop.start
+            self.stop = start_stop.stop
+            self.step = start_stop.step
+            self.curr = start_stop.curr
+            self.akarin = start_stop.akarin
+
         if stop is MISSING:
             self.start = 0
-            self.stop = start_stop.__index__()
+            if isinstance(start_stop, HoldsVideoFormatT | VideoFormatT):
+                self.stop = get_video_format(start_stop)
+            else:
+                self.stop = start_stop.__index__()
         else:
             self.start = start_stop.__index__()
             self.stop = stop.__index__()
@@ -58,7 +74,7 @@ class _ExprVars(Iterable[str]):
         self.curr = self.start
 
     @overload
-    def __call__(self, stop: SupportsIndex, /, *, akarin: bool | None = None) -> _ExprVars:
+    def __call__(self, stop: SupportsIndex | ExprVarRangeT, /, *, akarin: bool | None = None) -> _ExprVars:
         ...
 
     @overload
@@ -68,8 +84,8 @@ class _ExprVars(Iterable[str]):
         ...
 
     def __call__(
-        self, start_stop: SupportsIndex, stop: SupportsIndex | MissingT = MISSING, step: SupportsIndex = 1,
-        /, *, akarin: bool | None = None
+        self, start_stop: SupportsIndex | ExprVarRangeT, stop: SupportsIndex | MissingT = MISSING,
+        step: SupportsIndex = 1, /, *, akarin: bool | None = None
     ) -> _ExprVars:
         return ExprVars(start_stop, stop, step, akarin=akarin)  # type: ignore
 
@@ -170,6 +186,7 @@ class _ExprVars(Iterable[str]):
 
 ExprVars: _ExprVars = _ExprVars  # type: ignore
 ExprVarsT: TypeAlias = _ExprVars
+ExprVarRangeT: TypeAlias = ExprVarsT | HoldsVideoFormatT | VideoFormatT | SupportsIndex
 
 
 def bitdepth_aware_tokenize_expr(
