@@ -5,11 +5,11 @@ from math import isqrt
 from typing import Any, Iterable, Iterator, SupportsFloat, SupportsIndex
 
 from vstools import (
-    ColorRange, ConvMode, CustomEnum, PlanesT, StrArrOpt, StrList, flatten, get_lowest_value, get_neutral_value,
-    get_peak_value, vs
+    ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, PlanesT, StrArrOpt, StrList, flatten,
+    get_lowest_value, get_neutral_value, get_peak_value, vs
 )
 
-from .util import ExprVars, aka_expr_available
+from .util import ExprVars, ExprVarsT, aka_expr_available
 
 __all__ = [
     'ExprOp', 'ExprToken'
@@ -262,3 +262,44 @@ class ExprOp(ExprOpBase, CustomEnum):
             output.append(ExprOp.ABS)
 
         return output
+
+    @staticmethod
+    def _parse_planes(
+        planesa: ExprVarsT | int, planesb: ExprVarsT | int | None, func: FuncExceptT
+    ) -> tuple[ExprVarsT, ExprVarsT]:
+        if not isinstance(planesa, ExprVarsT):
+            planesa = ExprVars(planesa)
+
+        if planesb is None:
+            planesb = ExprVars(planesa.stop, planesa.stop + len(planesa))
+        elif not isinstance(planesb, ExprVarsT):
+            planesb = ExprVars(planesb)
+
+        if len(planesa) != len(planesb):
+            raise CustomIndexError('Both clips must have an equal amount of planes!', func)
+
+        return planesa, planesb
+
+    @classmethod
+    def rmse(cls, planesa: ExprVarsT | int, planesb: ExprVarsT | int | None = None) -> StrList:
+        planesa, planesb = cls._parse_planes(planesa, planesb, cls.rmse)
+
+        expr = StrList()
+
+        for a, b in zip(planesa, planesb):
+            expr.append([a, b, cls.SUB, cls.DUP, cls.MUL, cls.SQRT])
+
+        expr.append(cls.MAX * expr.mlength)
+
+        return expr
+
+    def mae(cls, planesa: ExprVarsT | int, planesb: ExprVarsT | int | None = None) -> StrList:
+        planesa, planesb = cls._parse_planes(planesa, planesb, cls.rmse)
+        expr = StrList()
+
+        for a, b in zip(planesa, planesb):
+            expr.append([a, b, cls.SUB, cls.ABS])
+
+        expr.append(cls.MAX * expr.mlength)
+
+        return expr
