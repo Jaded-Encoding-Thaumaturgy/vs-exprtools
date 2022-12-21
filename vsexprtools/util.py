@@ -91,6 +91,9 @@ class _ExprVars(Iterable[str]):
 
         return var
 
+    def __len__(self) -> int:
+        return self.stop - self.start
+
     @classmethod
     def _check_akarin(cls, stop: SupportsIndex, akarin: bool | None = None) -> bool:
         stop = stop.__index__()
