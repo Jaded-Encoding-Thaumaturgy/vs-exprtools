@@ -5,14 +5,14 @@ from math import isqrt
 from typing import Any, Iterable, Iterator, SupportsFloat, SupportsIndex
 
 from vstools import (
-    ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, PlanesT, StrArrOpt, StrList, flatten,
-    get_lowest_value, get_neutral_value, get_peak_value, vs
+    ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, PlanesT, StrArrOpt, StrList, VideoNodeIterable,
+    flatten, get_lowest_value, get_neutral_value, get_peak_value, vs
 )
 
-from .util import ExprVars, ExprVarsT, ExprVarRangeT, aka_expr_available
+from .util import ExprVarRangeT, ExprVars, ExprVarsT, aka_expr_available
 
 __all__ = [
-    'ExprOp', 'ExprToken'
+    'ExprOp', 'ExprToken', 'ExprList'
 ]
 
 
@@ -103,6 +103,14 @@ class ExprToken(ExprTokenBase, CustomEnum):
         return ExprTokenBase(f'{self.value}_{ExprVars[__i]}')  # type: ignore
 
 
+class ExprList(StrList):
+    def __call__(
+        self, *clips: VideoNodeIterable, planes: PlanesT = None, func: FuncExceptT | None = None
+    ) -> vs.VideoNode:
+        from .funcs import norm_expr
+        return norm_expr(clips, self, planes, func=func or ExprList.__call__)
+
+
 class ExprOpBase(str):
     def combine(  # type: ignore
         self: ExprOp, *clips: vs.VideoNode | Iterable[vs.VideoNode | Iterable[vs.VideoNode]],
@@ -182,17 +190,17 @@ class ExprOp(ExprOpBase, CustomEnum):
         return [self] * n
 
     @classmethod
-    def clamp(cls, min: float, max: float, c: str = '') -> StrList:
+    def clamp(cls, min: float, max: float, c: str = '') -> ExprList:
 
         if aka_expr_available:
-            return StrList([c, min, max, ExprOp.CLAMP])
+            return ExprList([c, min, max, ExprOp.CLAMP])
 
-        return StrList([c, min, ExprOp.MAX, max, ExprOp.MAX])
+        return ExprList([c, min, ExprOp.MAX, max, ExprOp.MAX])
 
     @classmethod
     def matrix(
         cls, var: str, radius: int, mode: ConvMode = ConvMode.SQUARE, exclude: Iterable[tuple[int, int]] = []
-    ) -> StrList:
+    ) -> ExprList:
         exclude = list(exclude)
 
         if mode != ConvMode.SQUARE:
@@ -207,7 +215,7 @@ class ExprOp(ExprOpBase, CustomEnum):
                 for x in range(-radius, radius + 1)
             ]
 
-        return StrList([
+        return ExprList([
             var if x == y == 0 else
             ExprOp.REL_PIX(var, x, y)
             for (x, y) in coordinates
@@ -219,7 +227,7 @@ class ExprOp(ExprOpBase, CustomEnum):
         cls, var: str, matrix: Iterable[SupportsFloat] | Iterable[Iterable[SupportsFloat]],
         bias: float | None = None, divisor: float | bool = True, saturate: bool = True,
         mode: ConvMode = ConvMode.SQUARE
-    ) -> StrList:
+    ) -> ExprList:
         convolution = list[float](flatten(matrix))  # type: ignore
 
         conv_len = len(convolution)
@@ -240,7 +248,7 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         rel_pixels = cls.matrix(var, radius, mode)
 
-        output = StrList([
+        output = ExprList([
             rel_pix if weight == 1 else [rel_pix, weight, ExprOp.MUL]
             for rel_pix, weight in zip(rel_pixels, convolution)
             if weight != 0
@@ -280,10 +288,10 @@ class ExprOp(ExprOpBase, CustomEnum):
         return planesa, planesb
 
     @classmethod
-    def rmse(cls, planesa: ExprVarRangeT, planesb: ExprVarRangeT | None = None) -> StrList:
+    def rmse(cls, planesa: ExprVarRangeT, planesb: ExprVarRangeT | None = None) -> ExprList:
         planesa, planesb = cls._parse_planes(planesa, planesb, cls.rmse)
 
-        expr = StrList()
+        expr = ExprList()
 
         for a, b in zip(planesa, planesb):
             expr.append([a, b, cls.SUB, cls.DUP, cls.MUL, cls.SQRT])
@@ -292,9 +300,9 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         return expr
 
-    def mae(cls, planesa: ExprVarRangeT, planesb: ExprVarRangeT | None = None) -> StrList:
+    def mae(cls, planesa: ExprVarRangeT, planesb: ExprVarRangeT | None = None) -> ExprList:
         planesa, planesb = cls._parse_planes(planesa, planesb, cls.rmse)
-        expr = StrList()
+        expr = ExprList()
 
         for a, b in zip(planesa, planesb):
             expr.append([a, b, cls.SUB, cls.ABS])
