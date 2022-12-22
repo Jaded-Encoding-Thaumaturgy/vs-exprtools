@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from itertools import cycle
 from math import isqrt
-from typing import Any, Iterable, Iterator, SupportsFloat, SupportsIndex
+from typing import Any, Iterable, Iterator, Literal, SupportsFloat, SupportsIndex
 
 from vstools import (
-    ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, PlanesT, StrArrOpt, StrList, VideoNodeIterable,
-    flatten, get_lowest_value, get_neutral_value, get_peak_value, vs
-)
+    ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, HoldsVideoFormatT, PlanesT, StrArrOpt, StrList,
+    VideoFormatT, VideoNodeIterable, flatten, flatten_vnodes, get_lowest_value, get_neutral_value, get_peak_value,
+    split, vs)
 
 from .util import ExprVarRangeT, ExprVars, ExprVarsT, aka_expr_available
 
@@ -105,10 +105,18 @@ class ExprToken(ExprTokenBase, CustomEnum):
 
 class ExprList(StrList):
     def __call__(
-        self, *clips: VideoNodeIterable, planes: PlanesT = None, func: FuncExceptT | None = None
+        self, *clips: VideoNodeIterable, planes: PlanesT = None, format: HoldsVideoFormatT | VideoFormatT | None = None,
+        opt: bool | None = None, boundary: bool = False, force_akarin: Literal[False] | FuncExceptT = False,
+        func: FuncExceptT | None = None, split_planes: bool = False, **kwargs: Any
     ) -> vs.VideoNode:
         from .funcs import norm_expr
-        return norm_expr(clips, self, planes, func=func or ExprList.__call__)
+
+        fclips = flatten_vnodes(clips)
+
+        if split_planes:
+            fclips = sum(map(split, fclips), list[vs.VideoNode]())
+
+        return norm_expr(fclips, self, planes, format, opt, boundary, force_akarin, func, **kwargs)
 
 
 class ExprOpBase(str):
