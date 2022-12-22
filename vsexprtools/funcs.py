@@ -83,7 +83,8 @@ def combine(
 def norm_expr(
     clips: VideoNodeIterable, expr: str | StrArr | tuple[str | StrArr, ...], planes: PlanesT = None,
     format: HoldsVideoFormatT | VideoFormatT | None = None, opt: bool | None = None,
-    boundary: bool = False, force_akarin: Literal[False] | FuncExceptT = False, **kwargs: Any
+    boundary: bool = False, force_akarin: Literal[False] | FuncExceptT = False,
+    func: FuncExceptT | None = None, **kwargs: Any
 ) -> vs.VideoNode:
     clips = flatten_vnodes(clips)
 
@@ -103,7 +104,7 @@ def norm_expr(
         for is_chroma, e in enumerate(normalized_expr)
     ]
 
-    return expr_func(clips, tokenized_expr, format, opt, boundary, force_akarin)
+    return expr_func(clips, tokenized_expr, format, opt, boundary, force_akarin, func)
 
 
 def average_merge(*clips: VideoNodeIterable) -> vs.VideoNode:
