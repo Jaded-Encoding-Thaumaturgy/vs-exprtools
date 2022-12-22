@@ -51,15 +51,16 @@ class _ExprVars(Iterable[str]):
             self.step = start_stop.step
             self.curr = start_stop.curr
             self.akarin = start_stop.akarin
+            return
 
         if stop is MISSING:
             self.start = 0
-            if isinstance(start_stop, HoldsVideoFormatT | VideoFormatT):
-                self.stop = get_video_format(start_stop)
+            if isinstance(start_stop, HoldsVideoFormatT | VideoFormatT):  # type: ignore
+                self.stop = get_video_format(start_stop).num_planes  # type: ignore
             else:
-                self.stop = start_stop.__index__()
+                self.stop = start_stop.__index__()  # type: ignore
         else:
-            self.start = start_stop.__index__()
+            self.start = start_stop.__index__()  # type: ignore
             self.stop = stop.__index__()
 
         self.step = step.__index__()
