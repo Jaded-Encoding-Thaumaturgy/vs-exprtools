@@ -226,7 +226,8 @@ class ExprOp(ExprOpBase, CustomEnum):
     def convolution(
         cls, var: str, matrix: Iterable[SupportsFloat] | Iterable[Iterable[SupportsFloat]],
         bias: float | None = None, divisor: float | bool = True, saturate: bool = True,
-        mode: ConvMode = ConvMode.SQUARE
+        mode: ConvMode = ConvMode.SQUARE, premultiply: float | int | None = None,
+        multiply: float | int | None = None, clamp: bool = False
     ) -> ExprList:
         convolution = list[float](flatten(matrix))  # type: ignore
 
@@ -256,6 +257,9 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         output.extend(ExprOp.ADD * output.mlength)
 
+        if premultiply is not None:
+            output.append(premultiply, ExprOp.MUL)
+
         if divisor is not False:
             if divisor is True:
                 divisor = sum(map(float, convolution))
@@ -268,6 +272,12 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         if not saturate:
             output.append(ExprOp.ABS)
+
+        if multiply is not None:
+            output.append(multiply, ExprOp.MUL)
+
+        if clamp:
+            output.append(ExprOp.clamp(ExprToken.RangeMin, ExprToken.RangeMax))
 
         return output
 
