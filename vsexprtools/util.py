@@ -230,7 +230,7 @@ def norm_expr_planes(
 
     planes = normalize_planes(clip, planes)
 
-    string_args = [(key, normalize_seq(value)) for key, value in kwargs.items()]
+    string_args = [(key, normalize_seq(to_arr(value))) for key, value in kwargs.items()]
 
     return [
         exp.format(**{key: value[i] for key, value in string_args})
