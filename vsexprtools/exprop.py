@@ -198,7 +198,9 @@ class ExprOp(ExprOpBase, CustomEnum):
         return [self] * n
 
     @classmethod
-    def clamp(cls, min: float | ExprToken, max: float | ExprToken, c: str = '') -> ExprList:
+    def clamp(
+        cls, min: float | ExprToken = ExprToken.RangeMin, max: float | ExprToken = ExprToken.RangeMax, c: str = ''
+    ) -> ExprList:
 
         if aka_expr_available:
             return ExprList([c, min, max, ExprOp.CLAMP])
