@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from itertools import count
-from typing import Any, Iterable, Iterator, Sequence, SupportsIndex, TypeAlias, overload
+from typing import Any, Callable, Iterable, Iterator, Sequence, SupportsIndex, TypeAlias, overload
 
 from vstools import (
     EXPR_VARS, MISSING, ColorRange, CustomIndexError, CustomNotImplementedError, CustomRuntimeError, FuncExceptT,
@@ -200,7 +200,17 @@ def bitdepth_aware_tokenize_expr(
     if not expr or len(expr) < 4:
         return expr
 
-    replaces = [(x.value, x.get_value) for x in ExprToken]
+    replaces = list[tuple[str, Callable[[vs.VideoNode, bool, ColorRange], float]]]()
+
+    for token in ExprToken:
+        if token.value in expr:
+            replaces.extend([
+                (token.value, token.get_value),
+                (f'{token.__class__.__name__}.{token.value}', token.get_value)
+            ])
+
+    if not replaces:
+        return expr
 
     clips = list(clips)
     ranges = [ColorRange.from_video(c, func=func) for c in clips]
