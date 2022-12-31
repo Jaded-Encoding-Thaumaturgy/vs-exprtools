@@ -201,11 +201,6 @@ class ExprOp(ExprOpBase, CustomEnum):
     def clamp(
         cls, min: float | ExprToken = ExprToken.RangeMin, max: float | ExprToken = ExprToken.RangeMax, c: str = ''
     ) -> ExprList:
-        if isinstance(min, ExprToken):
-            min = min.value  # type: ignore
-
-        if isinstance(max, ExprToken):
-            max = max.value  # type: ignore
 
         if aka_expr_available:
             return ExprList([c, min, max, ExprOp.CLAMP])
