@@ -204,10 +204,12 @@ def bitdepth_aware_tokenize_expr(
 
     for token in ExprToken:
         if token.value in expr:
-            replaces.extend([
-                (token.value, token.get_value),
-                (f'{token.__class__.__name__}.{token.value}', token.get_value)
-            ])
+            replaces.append((token.value, token.get_value))
+
+        if token.name in expr:
+            replaces.append(
+                (f'{token.__class__.__name__}.{token.name}', token.get_value)
+            )
 
     if not replaces:
         return expr
