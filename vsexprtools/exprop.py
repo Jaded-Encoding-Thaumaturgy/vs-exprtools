@@ -177,7 +177,12 @@ class ExprOp(ExprOpBase, CustomEnum):
     ABS_PIX = '{x:d} {y:d} {char:s}[]'
 
     @overload
-    def __call__(self, *clips: VideoNodeIterable, **kwargs: Any) -> vs.VideoNode:  # type: ignore
+    def __call__(  # type: ignore
+        self, *clips: VideoNodeIterable, suffix: StrArrOpt = None,
+        prefix: StrArrOpt = None, expr_suffix: StrArrOpt = None,
+        expr_prefix: StrArrOpt = None, planes: PlanesT = None,
+        **expr_kwargs: Any
+    ) -> vs.VideoNode:
         """Call combine with this ExprOp."""
 
     @overload
