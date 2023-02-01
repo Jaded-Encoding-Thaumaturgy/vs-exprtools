@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from itertools import cycle
 from math import isqrt
-from typing import Any, Iterable, Iterator, Literal, SupportsFloat, SupportsIndex
+from typing import Any, Iterable, Iterator, Literal, SupportsFloat, SupportsIndex, overload
 
 from vstools import (
     ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, HoldsVideoFormatT, PlanesT, StrArrOpt, StrList,
     VideoFormatT, VideoNodeIterable, flatten, flatten_vnodes, get_lowest_value, get_neutral_value, get_peak_value,
-    split, vs)
+    split, vs
+)
 
 from .util import ExprVarRangeT, ExprVars, ExprVarsT, aka_expr_available
 
@@ -175,8 +176,19 @@ class ExprOp(ExprOpBase, CustomEnum):
     REL_PIX = '{char:s}[{x:d},{y:d}]'
     ABS_PIX = '{x:d} {y:d} {char:s}[]'
 
+    @overload
+    def __call__(self, *clips: VideoNodeIterable, **kwargs: Any) -> vs.VideoNode:
+        """Call combine with this ExprOp."""
+
+    @overload
     def __call__(self, *pos_args: Any, **kwargs: Any) -> ExprOpBase:
-        args = list[Any](pos_args)
+        """Format this ExprOp into an ExprOpBase str."""
+
+    def __call__(self, *pos_args: Any, **kwargs: Any) -> vs.VideoNode | ExprOpBase:
+        args = list[Any](flatten(pos_args))
+
+        if isinstance(args[0], vs.VideoNode):
+            return self.combine(*pos_args, **kwargs)
 
         while True:
             try:
