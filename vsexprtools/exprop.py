@@ -177,7 +177,7 @@ class ExprOp(ExprOpBase, CustomEnum):
     ABS_PIX = '{x:d} {y:d} {char:s}[]'
 
     @overload
-    def __call__(self, *clips: VideoNodeIterable, **kwargs: Any) -> vs.VideoNode:
+    def __call__(self, *clips: VideoNodeIterable, **kwargs: Any) -> vs.VideoNode:  # type: ignore
         """Call combine with this ExprOp."""
 
     @overload
@@ -188,7 +188,7 @@ class ExprOp(ExprOpBase, CustomEnum):
         args = list[Any](flatten(pos_args))
 
         if isinstance(args[0], vs.VideoNode):
-            return self.combine(*pos_args, **kwargs)
+            return self.combine(*args, **kwargs)
 
         while True:
             try:
