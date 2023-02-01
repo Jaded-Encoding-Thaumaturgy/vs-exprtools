@@ -120,6 +120,8 @@ class ExprList(StrList):
 
 
 class ExprOpBase(str):
+    value: str
+
     def combine(  # type: ignore
         self: ExprOp, *clips: vs.VideoNode | Iterable[vs.VideoNode | Iterable[vs.VideoNode]],
         suffix: StrArrOpt = None, prefix: StrArrOpt = None, expr_suffix: StrArrOpt = None,
