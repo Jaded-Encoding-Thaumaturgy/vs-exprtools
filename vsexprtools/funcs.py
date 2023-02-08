@@ -84,9 +84,9 @@ def norm_expr(
     clips: VideoNodeIterable, expr: str | StrArr | tuple[str | StrArr, ...], planes: PlanesT = None,
     format: HoldsVideoFormatT | VideoFormatT | None = None, opt: bool | None = None,
     boundary: bool = False, force_akarin: Literal[False] | FuncExceptT = False,
-    func: FuncExceptT | None = None, **kwargs: Any
+    func: FuncExceptT | None = None, split_planes: bool = False, **kwargs: Any
 ) -> vs.VideoNode:
-    clips = flatten_vnodes(clips)
+    clips = flatten_vnodes(clips, split_planes=split_planes)
 
     if isinstance(expr, str):
         nexpr = tuple([[expr]])
