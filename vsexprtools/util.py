@@ -238,7 +238,7 @@ def norm_expr_planes(
 ) -> list[str]:
     assert clip.format
 
-    expr_array = normalize_seq(to_arr(expr), clip.format.num_planes)  # type: ignore
+    expr_array = normalize_seq(to_arr(expr), clip.format.num_planes)
 
     planes = normalize_planes(clip, planes)
 

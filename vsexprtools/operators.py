@@ -206,7 +206,7 @@ class ExprOperators:
     MOD = BinaryOperator(ExprOp.MOD, op.mod)
 
     # 3 Arguments
-    TERN = TernaryIfOperator(ExprOp.TERN, lambda x, y, z: (x if z else y))
+    TERN = TernaryIfOperator(ExprOp.TERN, lambda x, y, z: (x if z else y))  # type: ignore
 
     CLAMP = TernaryCompOperator(
         ExprOp.CLAMP, lambda x, y, z: max(y, min(x, z))
