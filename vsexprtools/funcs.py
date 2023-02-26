@@ -65,9 +65,9 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> list[SupportsString]:
 def combine(
     clips: VideoNodeIterable, operator: ExprOp = ExprOp.MAX, suffix: StrArrOpt = None,
     prefix: StrArrOpt = None, expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None,
-    planes: PlanesT = None, **expr_kwargs: Any
+    planes: PlanesT = None, split_planes: bool = False, **kwargs: Any
 ) -> vs.VideoNode:
-    clips = flatten_vnodes(clips)
+    clips = flatten_vnodes(clips, split_planes=split_planes)
 
     n_clips = len(clips)
 
@@ -77,7 +77,7 @@ def combine(
 
     operators = operator * max(n_clips - 1, 1)
 
-    return norm_expr(clips, [expr_prefix, args, operators, expr_suffix], planes, **expr_kwargs)
+    return norm_expr(clips, [expr_prefix, args, operators, expr_suffix], planes, **kwargs)
 
 
 def norm_expr(
