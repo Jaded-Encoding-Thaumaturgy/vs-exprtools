@@ -5,8 +5,9 @@ from typing import Any, Callable, Iterable, Iterator, Sequence, SupportsIndex, T
 
 from vstools import (
     EXPR_VARS, MISSING, ColorRange, CustomIndexError, CustomNotImplementedError, CustomRuntimeError, FuncExceptT,
-    HoldsVideoFormatT, MissingT, PlanesT, VideoFormatT, classproperty, core, get_video_format, normalize_planes,
-    normalize_seq, to_arr, vs)
+    HoldsVideoFormatT, MissingT, PlanesT, VideoFormatT, classproperty, core, fallback, get_video_format,
+    normalize_planes, normalize_seq, to_arr, vs
+)
 
 __all__ = [
     # VS variables
@@ -60,10 +61,10 @@ class _ExprVars(Iterable[str]):
             else:
                 self.stop = start_stop.__index__()  # type: ignore
         else:
-            self.start = start_stop.__index__()  # type: ignore
-            self.stop = stop.__index__()
+            self.start = 0 if start_stop is None else start_stop.__index__()  # type: ignore
+            self.stop = 255 if stop is None else stop.__index__()
 
-        self.step = step.__index__()
+        self.step = 1 if step is None else step.__index__()
 
         if self.start < 0:
             raise CustomIndexError('"start" must be bigger or equal than 0!')
@@ -157,7 +158,9 @@ class _ExprVars(Iterable[str]):
             akarin = None
 
         if isinstance(idx_slice, slice):
-            return list(ExprVars(idx_slice.start, idx_slice.stop, idx_slice.step))
+            return list(ExprVars(  # type: ignore
+                idx_slice.start or 0, fallback(idx_slice.stop, MISSING), fallback(idx_slice.step, 1)
+            ))
         elif isinstance(idx_slice, SupportsIndex):
             return ExprVars.get_var(idx_slice.__index__(), akarin)
 
