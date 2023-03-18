@@ -1,6 +1,6 @@
 """VapourSynth functions and helpers for writing RPN expressions."""
 
-__version__ = '1.4.1'
+__version__ = '1.4.2'
 
 __author__ = 'Setsugen no ao <setsugen@setsugen.dev>'
 __maintainer__ = __author__
