@@ -9,7 +9,7 @@ from vstools import (
     VideoFormatT, VideoNodeIterable, flatten, get_lowest_value, get_neutral_value, get_peak_value, vs
 )
 
-from .util import ExprVarRangeT, ExprVars, ExprVarsT, aka_expr_available
+from .util import ExprVarRangeT, ExprVars, ExprVarsT, complexpr_available
 
 __all__ = [
     'ExprOp', 'ExprToken', 'ExprList'
@@ -218,7 +218,7 @@ class ExprOp(ExprOpBase, CustomEnum):
         cls, min: float | ExprToken = ExprToken.RangeMin, max: float | ExprToken = ExprToken.RangeMax, c: str = ''
     ) -> ExprList:
 
-        if aka_expr_available:
+        if complexpr_available:
             return ExprList([c, min, max, ExprOp.CLAMP])
 
         return ExprList([c, min, ExprOp.MAX, max, ExprOp.MAX])

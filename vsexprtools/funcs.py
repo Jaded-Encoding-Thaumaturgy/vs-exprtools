@@ -9,7 +9,7 @@ from vstools import (
 )
 
 from .exprop import ExprOp
-from .util import ExprVars, aka_expr_available, bitdepth_aware_tokenize_expr, norm_expr_planes
+from .util import ExprVars, complexpr_available, bitdepth_aware_tokenize_expr, norm_expr_planes
 
 __all__ = [
     'expr_func', 'combine', 'norm_expr',
@@ -26,7 +26,7 @@ def expr_func(
     func = func or force_akarin or expr_func
     over_clips = len(clips) > 26
 
-    if not aka_expr_available:
+    if not complexpr_available:
         if force_akarin or over_clips:
             raise ExprVars._get_akarin_err('This function only works with akarin plugin!')(func=func)
     elif over_clips and b'src26' not in vs.core.akarin.Version()['expr_features']:  # type: ignore
@@ -34,21 +34,21 @@ def expr_func(
 
     fmt = None if format is None else get_video_format(format).id
 
-    if aka_expr_available and opt is None:
+    if complexpr_available and opt is None:
         opt = all([
             clip.format and clip.format.sample_type == vs.INTEGER
             for clip in (clips if isinstance(clips, Sequence) else [clips])
         ])
 
     try:
-        if aka_expr_available:
+        if complexpr_available:
             return core.akarin.Expr(clips, expr, fmt, opt, boundary)
 
         return core.std.Expr(clips, expr, fmt)
     except Exception:
         raise CustomRuntimeError(
             'There was an error when evaluating the expression:\n' + (
-                '' if aka_expr_available else 'You might need akarin-plugin, and are missing it.'
+                '' if complexpr_available else 'You might need akarin-plugin, and are missing it.'
             ), func, f'\n{expr}\n'
         )
 

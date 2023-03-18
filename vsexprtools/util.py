@@ -11,7 +11,7 @@ from vstools import (
 
 __all__ = [
     # VS variables
-    'EXPR_VARS', 'aka_expr_available',
+    'EXPR_VARS', 'complexpr_available',
     # Expr helpers
     'ExprVars', 'ExprVarsT', 'ExprVarRangeT', 'bitdepth_aware_tokenize_expr',
     # VS helpers
@@ -19,10 +19,17 @@ __all__ = [
 ]
 
 
-try:
-    aka_expr_available = bool(core.akarin.Expr)
-except AttributeError:
-    aka_expr_available = False
+class _complexpr_available:
+    def __bool__(self) -> bool:
+        try:
+            return bool(core.akarin.Expr)
+        except AttributeError:
+            ...
+
+        return False
+
+
+complexpr_available = _complexpr_available()
 
 
 class _ExprVars(Iterable[str]):
@@ -119,7 +126,7 @@ class _ExprVars(Iterable[str]):
         if akarin is None:
             akarin = stop > 26
 
-        if akarin and not aka_expr_available:
+        if akarin and not complexpr_available:
             raise cls._get_akarin_err(
                 'You are trying to get more than 26 variables or srcX vars, you need akarin plugin!'
             )
