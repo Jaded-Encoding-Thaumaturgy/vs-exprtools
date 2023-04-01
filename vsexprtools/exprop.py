@@ -119,6 +119,13 @@ class ExprList(StrList):
 
 class ExprOpBase(str):
     value: str
+    n_op: int
+
+    def __new__(cls, value: str, n_op: int) -> ExprOpBase:
+        self = super().__new__(cls, value)
+        self.n_op = n_op
+
+        return self
 
     def combine(  # type: ignore
         self: ExprOp, *clips: vs.VideoNode | Iterable[vs.VideoNode | Iterable[vs.VideoNode]],
@@ -132,46 +139,46 @@ class ExprOpBase(str):
 
 class ExprOp(ExprOpBase, CustomEnum):
     # 1 Argument
-    EXP = "exp"
-    LOG = "log"
-    SQRT = "sqrt"
-    SIN = "sin"
-    COS = "cos"
-    ABS = "abs"
-    NOT = "not"
-    DUP = "dup"
-    DUPN = "dupN"
-    TRUNC = "trunc"
-    ROUND = "round"
-    FLOOR = "floor"
+    EXP = "exp", 1
+    LOG = "log", 1
+    SQRT = "sqrt", 1
+    SIN = "sin", 1
+    COS = "cos", 1
+    ABS = "abs", 1
+    NOT = "not", 1
+    DUP = "dup", 1
+    DUPN = "dupN", 1
+    TRUNC = "trunc", 1
+    ROUND = "round", 1
+    FLOOR = "floor", 1
 
     # 2 Arguments
-    MAX = "max"
-    MIN = "min"
-    ADD = "+"
-    SUB = "-"
-    MUL = "*"
-    DIV = "/"
-    POW = "pow"
-    GT = ">"
-    LT = "<"
-    EQ = "="
-    GTE = ">="
-    LTE = "<="
-    AND = "and"
-    OR = "or"
-    XOR = "xor"
-    SWAP = "swap"
-    SWAPN = "swapN"
-    MOD = "%"
+    MAX = "max", 2
+    MIN = "min", 2
+    ADD = "+", 2
+    SUB = "-", 2
+    MUL = "*", 2
+    DIV = "/", 2
+    POW = "pow", 2
+    GT = ">", 2
+    LT = "<", 2
+    EQ = "=", 2
+    GTE = ">=", 2
+    LTE = "<=", 2
+    AND = "and", 2
+    OR = "or", 2
+    XOR = "xor", 2
+    SWAP = "swap", 2
+    SWAPN = "swapN", 2
+    MOD = "%", 2
 
     # 3 Arguments
-    TERN = "?"
-    CLAMP = "clamp"
+    TERN = "?", 3
+    CLAMP = "clamp", 3
 
     # Special Operators
-    REL_PIX = '{char:s}[{x:d},{y:d}]'
-    ABS_PIX = '{x:d} {y:d} {char:s}[]'
+    REL_PIX = '{char:s}[{x:d},{y:d}]', 3
+    ABS_PIX = '{x:d} {y:d} {char:s}[]', 3
 
     @overload
     def __call__(  # type: ignore
@@ -194,7 +201,7 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         while True:
             try:
-                return ExprOpBase(self.format(*args, **kwargs))
+                return ExprOpBase(self.format(*args, **kwargs), 3)
             except KeyError as key:
                 try:
                     kwargs.update({str(key)[1:-1]: args.pop(0)})
