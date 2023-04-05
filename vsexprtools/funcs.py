@@ -75,7 +75,9 @@ def combine(
 
     args = zip(prefixes, ExprVars(n_clips), suffixes)
 
-    operators = operator * max(n_clips - 1, int(n_clips >= operator.n_op))
+    has_op = (n_clips >= operator.n_op) or any(x is not None for x in (suffix, prefix, expr_suffix, expr_prefix))
+
+    operators = operator * max(n_clips - 1, int(has_op))
 
     return norm_expr(clips, [expr_prefix, args, operators, expr_suffix], planes, **kwargs)
 
