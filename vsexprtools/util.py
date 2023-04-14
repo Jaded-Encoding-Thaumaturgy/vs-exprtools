@@ -212,7 +212,7 @@ def bitdepth_aware_tokenize_expr(
 
     replaces = list[tuple[str, Callable[[vs.VideoNode, bool, ColorRange], float]]]()
 
-    for token in ExprToken:
+    for token in sorted(ExprToken, key=lambda x: len(x), reverse=True):
         if token.value in expr:
             replaces.append((token.value, token.get_value))
 
