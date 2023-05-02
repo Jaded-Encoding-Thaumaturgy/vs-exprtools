@@ -228,7 +228,7 @@ class ExprOp(ExprOpBase, CustomEnum):
         if complexpr_available:
             return ExprList([c, min, max, ExprOp.CLAMP])
 
-        return ExprList([c, min, ExprOp.MAX, max, ExprOp.MAX])
+        return ExprList([c, min, ExprOp.MAX, max, ExprOp.MIN])
 
     @classmethod
     def matrix(
