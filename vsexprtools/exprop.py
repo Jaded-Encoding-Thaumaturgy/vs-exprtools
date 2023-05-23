@@ -6,7 +6,7 @@ from typing import Any, Iterable, Iterator, Literal, SupportsFloat, SupportsInde
 
 from vstools import (
     ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, HoldsVideoFormatT, PlanesT, StrArrOpt, StrList,
-    VideoFormatT, VideoNodeIterable, flatten, get_lowest_value, get_neutral_value, get_peak_value, vs
+    VideoFormatT, VideoNodeIterable, flatten, get_lowest_value, get_neutral_value, get_peak_value, vs, get_sample_type
 )
 
 from .util import ExprVarRangeT, ExprVars, ExprVarsT, complexpr_available
@@ -25,6 +25,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
     ChromaMin = 'cmin'
     Lumamax = 'ymax'
     Chromamax = 'cmax'
+    RangeDiff = 'range_diff'
     RangeHalf = 'range_half'
     RangeSize = 'range_size'
     RangeMin = 'range_min'
@@ -56,6 +57,11 @@ class ExprToken(ExprTokenBase, CustomEnum):
 
         if self is ExprToken.Chromamax:
             return get_peak_value(clip, True, ColorRange.LIMITED)
+
+        if self is ExprToken.RangeDiff:
+            if get_sample_type(clip) is vs.FLOAT:
+                return 0.0
+            return get_neutral_value(clip, chroma)
 
         if self is ExprToken.RangeHalf:
             return get_neutral_value(clip, chroma)
