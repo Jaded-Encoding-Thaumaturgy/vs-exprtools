@@ -20,6 +20,19 @@ __all__ = [
 
 
 class _complexpr_available:
+    @property
+    def fp16(self) -> bool:
+        from .funcs import expr_func
+
+        if not hasattr(self, '_fp16_available'):
+            try:
+                expr_func(core.std.BlankClip(format=vs.GRAYH), 'x dup *')
+                self._fp16_available = True
+            except Exception:
+                self._fp16_available = False
+
+        return self._fp16_available
+
     def __bool__(self) -> bool:
         try:
             return bool(core.akarin.Expr)
