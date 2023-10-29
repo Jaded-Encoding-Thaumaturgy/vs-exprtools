@@ -22,9 +22,8 @@ setuptools.setup(
     long_description=readme,
     long_description_content_type='text/markdown',
     project_urls={
-        'Source Code': 'https://github.com/Irrational-Encoding-Wizardry/vs-exprtools',
-        'Documentation': 'https://vsexprtools.encode.moe/en/latest/',
-        'Contact': 'https://discord.gg/qxTxVJGtst',
+        'Source Code': 'https://github.com/Setsugennoao/vs-exprtools',
+        'Contact': 'https://discord.gg/setsugen',
     },
     install_requires=requirements,
     python_requires='>=3.11',
