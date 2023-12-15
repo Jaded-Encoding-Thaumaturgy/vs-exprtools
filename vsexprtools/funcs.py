@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+from functools import partial
 from math import ceil
 from typing import Any, Iterable, Literal, Sequence
 
 from vstools import (
-    CustomRuntimeError, FuncExceptT, HoldsVideoFormatT, PlanesT, StrArr, StrArrOpt, StrList, SupportsString,
-    VideoFormatT, VideoNodeIterable, core, flatten_vnodes, get_video_format, to_arr, vs
+    CustomRuntimeError, CustomValueError, FuncExceptT, HoldsVideoFormatT, PlanesT, ProcessVariableResClip, StrArr,
+    StrArrOpt, StrList, SupportsString, VideoFormatT, VideoNodeIterable, check_variable_format, core, flatten_vnodes,
+    get_video_format, to_arr, vs
 )
 
 from .exprop import ExprOp
-from .util import ExprVars, complexpr_available, bitdepth_aware_tokenize_expr, norm_expr_planes
+from .util import ExprVars, bitdepth_aware_tokenize_expr, complexpr_available, norm_expr_planes
 
 __all__ = [
     'expr_func', 'combine', 'norm_expr',
@@ -24,6 +26,7 @@ def expr_func(
     force_akarin: Literal[False] | FuncExceptT = False, func: FuncExceptT | None = None
 ) -> vs.VideoNode:
     func = func or force_akarin or expr_func
+    clips = list(clips) if isinstance(clips, Sequence) else [clips]
     over_clips = len(clips) > 26
 
     if not complexpr_available:
@@ -34,17 +37,28 @@ def expr_func(
 
     fmt = None if format is None else get_video_format(format).id
 
+    got_var_res = False
+
+    for clip in clips:
+        check_variable_format(clip, func)
+        got_var_res = got_var_res or (0 in (clip.width, clip.height))
+
     if complexpr_available and opt is None:
-        opt = all([
-            clip.format and clip.format.sample_type == vs.INTEGER
-            for clip in (clips if isinstance(clips, Sequence) else [clips])
-        ])
+        opt = all(clip.format.sample_type == vs.INTEGER for clip in clips)  # type: ignore
+
+    if complexpr_available:
+        func_impl = partial(core.akarin.Expr, expr=expr, format=fmt, opt=opt, boundary=boundary)
+    else:
+        func_impl = partial(core.std.Expr, expr=expr, format=fmt)
+
+    if got_var_res:
+        if len(clips) == 1:
+            return ProcessVariableResClip.from_func(clips[0], func_impl, None, clips[0].format)
+
+        raise CustomValueError('You can run only one var res clip!')
 
     try:
-        if complexpr_available:
-            return core.akarin.Expr(clips, expr, fmt, opt, boundary)
-
-        return core.std.Expr(clips, expr, fmt)
+        return func_impl(clips)
     except Exception:
         raise CustomRuntimeError(
             'There was an error when evaluating the expression:\n' + (
