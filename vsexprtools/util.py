@@ -268,6 +268,6 @@ def norm_expr_planes(
     string_args = [(key, normalize_seq(to_arr(value))) for key, value in kwargs.items()]
 
     return [
-        exp.format(**{key: value[i] for key, value in string_args})
+        exp.format(**({'plane_idx': i} | {key: value[i] for key, value in string_args}))
         if i in planes else '' for i, exp in enumerate(expr_array, 0)
     ]
