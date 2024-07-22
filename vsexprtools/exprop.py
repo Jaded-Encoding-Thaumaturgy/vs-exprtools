@@ -238,11 +238,11 @@ class ExprOp(ExprOpBase, CustomEnum):
 
     @classmethod
     def matrix(
-        cls, var: str, radius: int, mode: ConvMode = ConvMode.SQUARE, exclude: Iterable[tuple[int, int]] = []
+        cls, var: str, radius: int, mode: ConvMode = ConvMode.HV, exclude: Iterable[tuple[int, int]] = []
     ) -> ExprList:
         exclude = list(exclude)
 
-        if mode != ConvMode.SQUARE:
+        if mode != ConvMode.HV:
             coordinates = [
                 (xy, 0) if mode is ConvMode.HORIZONTAL else (0, xy)
                 for xy in range(-radius, radius + 1)
@@ -265,7 +265,7 @@ class ExprOp(ExprOpBase, CustomEnum):
     def convolution(
         cls, var: str, matrix: Iterable[SupportsFloat] | Iterable[Iterable[SupportsFloat]],
         bias: float | None = None, divisor: float | bool = True, saturate: bool = True,
-        mode: ConvMode = ConvMode.SQUARE, premultiply: float | int | None = None,
+        mode: ConvMode = ConvMode.HV, premultiply: float | int | None = None,
         multiply: float | int | None = None, clamp: bool = False
     ) -> ExprList:
         convolution = list[float](flatten(matrix))  # type: ignore
@@ -276,12 +276,12 @@ class ExprOp(ExprOpBase, CustomEnum):
             raise ValueError('ExprOp.convolution: convolution length must be odd!')
         elif conv_len < 3:
             raise ValueError('ExprOp.convolution: you must pass at least 3 convolution items!')
-        elif mode is ConvMode.SQUARE and conv_len != isqrt(conv_len) ** 2:
+        elif mode is ConvMode.HV and conv_len != isqrt(conv_len) ** 2:
             raise ValueError(
-                'ExprOp.convolution: with square mode, convolution must represent a square (radius*radius n items)!'
+                'ExprOp.convolution: with hv mode, convolution must represent a horizontal*vertical square (radius*radius n items)!'
             )
 
-        if mode != ConvMode.SQUARE:
+        if mode != ConvMode.HV:
             radius = conv_len // 2
         else:
             radius = isqrt(conv_len) // 2
