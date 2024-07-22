@@ -278,7 +278,8 @@ class ExprOp(ExprOpBase, CustomEnum):
             raise ValueError('ExprOp.convolution: you must pass at least 3 convolution items!')
         elif mode is ConvMode.HV and conv_len != isqrt(conv_len) ** 2:
             raise ValueError(
-                'ExprOp.convolution: with hv mode, convolution must represent a horizontal*vertical square (radius*radius n items)!'
+                'ExprOp.convolution: with hv mode, convolution must represent a '
+                'horizontal*vertical square (radius*radius n items)!'
             )
 
         if mode != ConvMode.HV:
