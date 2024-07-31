@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import operator as op
+from copy import copy
 from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING, Any, Callable, Generic, Iterable, Sequence, SupportsAbs, SupportsIndex, SupportsRound, TypeAlias,
@@ -128,7 +129,7 @@ class TernaryPixelAccessOperator(Generic[T], TernaryBaseOperator):
     def __call__(self, char: str, x: T, y: T) -> ComputedVar:  # type: ignore
         from .variables import ComputedVar
         self.set_vars(char, x, y)
-        return ComputedVar([self])
+        return ComputedVar([copy(self)])
 
     def set_vars(self, char: str, x: T, y: T) -> None:
         self.char = char
