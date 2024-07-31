@@ -140,7 +140,7 @@ class TernaryPixelAccessOperator(Generic[T], TernaryBaseOperator):
         if not hasattr(self, 'char'):
             raise ValueError('TernaryPixelAccessOperator: You have to call set_vars!')
 
-        return self.rpn_name.format(char=str(self.char), x=str(self.x), y=str(self.y))
+        return self.rpn_name.format(char=str(self.char), x=int(self.x), y=int(self.y))
 
 
 class ExprOperators:
