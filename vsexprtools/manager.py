@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import builtins
 from contextlib import AbstractContextManager
 from types import TracebackType
 from typing import NamedTuple, Sequence
@@ -9,7 +8,7 @@ from vstools import vs
 
 from .funcs import expr_func
 from .operators import ExprOperators
-from .polyfills import global_builtins, global_builtins_expr
+from .polyfills import disable_poly, enable_poly
 from .util import ExprVars
 from .variables import ClipVar, ComputedVar, ExprVar
 
@@ -44,7 +43,7 @@ class inline_expr(AbstractContextManager[InlineExpr]):
     def __enter__(self) -> InlineExpr:
         self._in_context = True
 
-        builtins.__dict__.update(**global_builtins_expr)
+        enable_poly()
 
         return InlineExpr(self._clips_char_map, ExprOperators(), self)
 
@@ -55,7 +54,7 @@ class inline_expr(AbstractContextManager[InlineExpr]):
     ) -> bool | None:
         self._final_clip = self._get_clip()
 
-        builtins.__dict__.update(**global_builtins)
+        disable_poly()
 
         self._in_context = False
 
