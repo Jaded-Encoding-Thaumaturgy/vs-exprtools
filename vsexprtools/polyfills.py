@@ -343,7 +343,7 @@ def _try_cast(klass):
 def _poly(op, k):
     def inner(*args: Any, **kwargs: Any) -> Any:
         if not any(isinstance(x, ExprVar) for x in args):
-            return substitutions[k]['min'](*args, **kwargs)
+            return substitutions[k]['min'][0](*args, **kwargs)
 
         var = args[0]
         for arg in args[1:]:
