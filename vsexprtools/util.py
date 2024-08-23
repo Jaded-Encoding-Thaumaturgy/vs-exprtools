@@ -11,7 +11,7 @@ from vstools import (
 
 __all__ = [
     # VS variables
-    'EXPR_VARS', 'complexpr_available',
+    'complexpr_available',
     # Expr helpers
     'ExprVars', 'ExprVarsT', 'ExprVarRangeT', 'bitdepth_aware_tokenize_expr',
     # VS helpers
