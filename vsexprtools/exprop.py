@@ -61,10 +61,10 @@ class ExprToken(ExprTokenBase, CustomEnum):
         if self is ExprToken.RangeDiff:
             if get_sample_type(clip) is vs.FLOAT:
                 return 0.0
-            return get_neutral_value(clip, chroma)
+            return get_neutral_value(clip)
 
         if self is ExprToken.RangeHalf:
-            return get_neutral_value(clip, chroma)
+            return get_neutral_value(clip)
 
         if self is ExprToken.RangeSize:
             return (val := get_peak_value(clip)) + (1 - (val <= 1.0))
