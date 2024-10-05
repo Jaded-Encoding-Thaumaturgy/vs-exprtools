@@ -318,7 +318,7 @@ class ClipVar(ExprVar):
 
     @property
     def neutral_chroma(self) -> LiteralVar:
-        return LiteralVar(get_neutral_value(self.clip, True))
+        return LiteralVar(get_neutral_value(self.clip))
 
     @property
     def lowest(self) -> LiteralVar:
