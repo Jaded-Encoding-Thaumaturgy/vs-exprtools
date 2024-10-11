@@ -300,7 +300,7 @@ def curse(klass, attr, func):
             if fname == impl_method:
                 cfunc_t = ftype
 
-        if not (klass, attr) in tp_as_dict:
+        if (klass, attr) not in tp_as_dict:
             tp_as_dict[(klass, attr)] = ctypes.cast(getattr(tyobj, impl_method), cfunc_t)
 
         cfunc = cfunc_t(wrapper)
@@ -324,7 +324,7 @@ def reverse(klass, attr):
             setattr(tp_as, impl_method,
                     ctypes.cast(ctypes.c_void_p(None), cfunc_t))
         else:
-            if not (klass, attr) in tp_as_dict:
+            if (klass, attr) not in tp_as_dict:
                 return
 
             cfunc = tp_as_dict[(klass, attr)]
