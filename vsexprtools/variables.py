@@ -7,7 +7,7 @@ from typing import (
 )
 
 from vstools import (
-    ByteData, ColorRange, ColorRangeT, F, Self, get_depth, get_lowest_value, get_neutral_value, get_peak_value,
+    ByteData, ColorRangeT, F, Self, get_depth, get_lowest_value, get_neutral_value, get_peak_value,
     get_plane_sizes, scale_value, vs
 )
 
@@ -358,7 +358,7 @@ class ClipVar(ExprVar):
 
     # Helper functions
     def scale(
-        self, value: float, input_depth: int = 8, range_in: ColorRange = ColorRange.LIMITED,
+        self, value: float, input_depth: int = 8, range_in: ColorRangeT | None = None,
         range_out: ColorRangeT | None = None, offsets: bool = False
     ) -> ComplexVar:
         @ComplexVar.resolver
