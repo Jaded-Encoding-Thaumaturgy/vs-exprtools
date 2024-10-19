@@ -359,13 +359,13 @@ class ClipVar(ExprVar):
     # Helper functions
     def scale(
         self, value: float, input_depth: int = 8, range_in: ColorRangeT | None = None,
-        range_out: ColorRangeT | None = None, offsets: bool = False
+        range_out: ColorRangeT | None = None, scale_offsets: bool | None = None, family: vs.ColorFamily | None = None,
     ) -> ComplexVar:
         @ComplexVar.resolver
         def _resolve(plane: int = 0, **kwargs: Any) -> Any:
             return scale_value(
                 value, input_depth, get_depth(self.clip),
-                range_in, range_out, offsets, plane in {1, 2}
+                range_in, range_out, scale_offsets, plane in {1, 2}, family
             )
 
         return ComplexVar(f'{self.char}.scale({value})', _resolve)
