@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import warnings
 from itertools import cycle
 from math import isqrt
 from typing import Any, Iterable, Iterator, Literal, SupportsFloat, SupportsIndex, overload
 
 from vstools import (
     ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, HoldsVideoFormatT, PlanesT, StrArrOpt, StrList,
-    VideoFormatT, VideoNodeIterable, flatten, get_lowest_value, get_neutral_value, get_peak_value, vs, get_sample_type
+    VideoFormatT, VideoNodeIterable, flatten, get_lowest_value, get_neutral_value, get_peak_value, vs
 )
 
 from .util import ExprVarRangeT, ExprVars, ExprVarsT, complexpr_available
@@ -23,8 +24,9 @@ class ExprTokenBase(str):
 class ExprToken(ExprTokenBase, CustomEnum):
     LumaMin = 'ymin'
     ChromaMin = 'cmin'
-    Lumamax = 'ymax'
-    Chromamax = 'cmax'
+    LumaMax = 'ymax'
+    ChromaMax = 'cmax'
+    Neutral = 'neutral'
     RangeDiff = 'range_diff'
     RangeHalf = 'range_half'
     RangeSize = 'range_size'
@@ -52,18 +54,21 @@ class ExprToken(ExprTokenBase, CustomEnum):
         if self is ExprToken.ChromaMin:
             return get_lowest_value(clip, True, ColorRange.LIMITED)
 
-        if self is ExprToken.Lumamax:
+        if self is ExprToken.LumaMax:
             return get_peak_value(clip, False, ColorRange.LIMITED)
 
-        if self is ExprToken.Chromamax:
+        if self is ExprToken.ChromaMax:
             return get_peak_value(clip, True, ColorRange.LIMITED)
+        
+        if self is ExprToken.Neutral:
+            return get_neutral_value(clip)
 
         if self is ExprToken.RangeDiff:
-            if get_sample_type(clip) is vs.FLOAT:
-                return 0.0
+            warnings.warn('ExprToken.RangeDiff: Operator is deprecated and will be removed in a later version! Use ExprToken.Neutral')
             return get_neutral_value(clip)
 
         if self is ExprToken.RangeHalf:
+            warnings.warn('ExprToken.RangeHalf: Operator is deprecated and will be removed in a later version! Use ExprToken.Neutral')
             return get_neutral_value(clip)
 
         if self is ExprToken.RangeSize:
