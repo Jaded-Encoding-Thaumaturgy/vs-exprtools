@@ -75,7 +75,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
             return (val := get_peak_value(clip, range_in=ColorRange.FULL)) + (1 - (val <= 1.0))
 
         if self is ExprToken.RangeMin:
-            return get_lowest_value(clip, chroma)
+            return get_lowest_value(clip, chroma, ColorRange.FULL)
 
         if self is ExprToken.LumaRangeMin:
             return get_lowest_value(clip, False)
@@ -84,7 +84,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
             return get_lowest_value(clip, True)
 
         if self is ExprToken.RangeMax:
-            return get_peak_value(clip, chroma)
+            return get_peak_value(clip, chroma, ColorRange.FULL)
 
         if self is ExprToken.LumaRangeMax:
             return get_peak_value(clip, False)
