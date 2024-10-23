@@ -72,7 +72,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
             return get_neutral_value(clip)
 
         if self is ExprToken.RangeSize:
-            return (val := get_peak_value(clip)) + (1 - (val <= 1.0))
+            return (val := get_peak_value(clip, range_in=ColorRange.FULL)) + (1 - (val <= 1.0))
 
         if self is ExprToken.RangeMin:
             return get_lowest_value(clip, chroma)
