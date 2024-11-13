@@ -47,7 +47,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
     def is_chroma(self) -> bool:
         return 'chroma' in self._name_.lower()
 
-    def get_value(self, clip: vs.VideoNode, chroma: bool = False, range_in: ColorRange = ColorRange.LIMITED) -> float:
+    def get_value(self, clip: vs.VideoNode, chroma: bool | None = None, range_in: ColorRange | None = None) -> float:
         if self is ExprToken.LumaMin:
             return get_lowest_value(clip, False, ColorRange.LIMITED)
 
@@ -68,8 +68,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
             return get_neutral_value(clip)
 
         if self is ExprToken.RangeHalf:
-            warnings.warn('ExprToken.RangeHalf: Operator is deprecated and will be removed in a later version! Use ExprToken.Neutral')
-            return get_neutral_value(clip)
+            return ((val := get_peak_value(clip, range_in=ColorRange.FULL)) + (1 - (val <= 1.0))) / 2
 
         if self is ExprToken.RangeSize:
             return (val := get_peak_value(clip, range_in=ColorRange.FULL)) + (1 - (val <= 1.0))
