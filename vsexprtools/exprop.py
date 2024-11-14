@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from itertools import cycle
 from math import isqrt
 from typing import Any, Iterable, Iterator, Literal, SupportsFloat, SupportsIndex, overload
@@ -27,7 +26,6 @@ class ExprToken(ExprTokenBase, CustomEnum):
     LumaMax = 'ymax'
     ChromaMax = 'cmax'
     Neutral = 'neutral'
-    RangeDiff = 'range_diff'
     RangeHalf = 'range_half'
     RangeSize = 'range_size'
     RangeMin = 'range_min'
@@ -61,10 +59,6 @@ class ExprToken(ExprTokenBase, CustomEnum):
             return get_peak_value(clip, True, ColorRange.LIMITED)
         
         if self is ExprToken.Neutral:
-            return get_neutral_value(clip)
-
-        if self is ExprToken.RangeDiff:
-            warnings.warn('ExprToken.RangeDiff: Operator is deprecated and will be removed in a later version! Use ExprToken.Neutral')
             return get_neutral_value(clip)
 
         if self is ExprToken.RangeHalf:
