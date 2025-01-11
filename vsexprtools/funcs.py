@@ -10,7 +10,7 @@ from vstools import (
     get_video_format, to_arr, vs
 )
 
-from .exprop import ExprOp
+from .exprop import ExprOp, ExprOpBase
 from .util import ExprVars, bitdepth_aware_tokenize_expr, complexpr_available, norm_expr_planes
 
 __all__ = [
@@ -77,7 +77,7 @@ def _combine_norm__ix(ffix: StrArrOpt, n_clips: int) -> list[SupportsString]:
 
 
 def combine(
-    clips: VideoNodeIterable, operator: ExprOp = ExprOp.MAX, suffix: StrArrOpt = None,
+    clips: VideoNodeIterable, operator: ExprOpBase = ExprOp.MAX, suffix: StrArrOpt = None,
     prefix: StrArrOpt = None, expr_suffix: StrArrOpt = None, expr_prefix: StrArrOpt = None,
     planes: PlanesT = None, split_planes: bool = False, **kwargs: Any
 ) -> vs.VideoNode:

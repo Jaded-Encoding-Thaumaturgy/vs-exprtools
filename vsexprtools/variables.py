@@ -30,11 +30,9 @@ class ExprVar(int):
     parent_expr: inline_expr | None
 
     def __new__(
-        cls: type[Self], x: ByteData,
-        __parent_expr: inline_expr | None = None,
-        *args: Any, **kwargs: Any
-    ) -> Self:
-        return int.__new__(cls, 0)
+        cls, x: ByteData, __parent_expr: inline_expr | None, /, *args: Any, **kwargs: Any
+    ) -> ExprVar:
+        return super().__new__(cls, 0)
 
     def __add__(self, other: ExprOtherT) -> ComputedVar:
         return ExprOperators.ADD(self, other)
@@ -239,22 +237,21 @@ class ComplexVar(LiteralVar):
 
     @overload
     @staticmethod
-    def resolver() -> Callable[[F], resolverT]:  # type: ignore
+    def resolver() -> Callable[[Callable[..., Any]], resolverT]:
         ...
 
     @overload
     @staticmethod
-    def resolver(function: F | None = None) -> resolverT:
+    def resolver(function: Callable[..., Any] | None = None) -> resolverT:
         ...
 
     @staticmethod
-    def resolver(function: F | None = None) -> Callable[[F], resolverT] | resolverT:
+    def resolver(function: Callable[..., Any] | None = None) -> Callable[[Callable[..., Any]], resolverT] | resolverT:
         if function is None:
-            return cast(Callable[[F], resolverT], ComplexVar.resolver)
+            return cast(Callable[[Callable[..., Any]], resolverT], ComplexVar.resolver)
 
         @wraps(function)
         def _wrapper(*args: Any, **kwargs: Any) -> Any:
-            assert function
             return LiteralVar(function(*args, **kwargs))
 
         return cast(resolverT, _wrapper)
@@ -359,7 +356,7 @@ class ClipVar(ExprVar):
     # Helper functions
     def scale(
         self, value: float, input_depth: int = 8, range_in: ColorRangeT | None = None,
-        range_out: ColorRangeT | None = None, scale_offsets: bool | None = None, family: vs.ColorFamily | None = None,
+        range_out: ColorRangeT | None = None, scale_offsets: bool = True, family: vs.ColorFamily | None = None,
     ) -> ComplexVar:
         @ComplexVar.resolver
         def _resolve(plane: int = 0, **kwargs: Any) -> Any:
