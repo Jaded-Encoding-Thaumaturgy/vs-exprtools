@@ -5,8 +5,9 @@ from math import isqrt
 from typing import Any, Iterable, Iterator, Literal, SupportsFloat, SupportsIndex, overload
 
 from vstools import (
-    ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, HoldsVideoFormatT, PlanesT, StrArrOpt, StrList,
-    VideoFormatT, VideoNodeIterable, flatten, get_lowest_value, get_neutral_value, get_peak_value, vs
+    ColorRange, ConvMode, CustomEnum, CustomIndexError, CustomValueError, FuncExceptT,
+    HoldsVideoFormatT, PlanesT, StrArrOpt, StrList, VideoFormatT, VideoNodeIterable, flatten,
+    get_lowest_value, get_neutral_value, get_peak_value, vs
 )
 
 from .util import ExprVarRangeT, ExprVars, ExprVarsT, complexpr_available
@@ -57,7 +58,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
 
         if self is ExprToken.ChromaMax:
             return get_peak_value(clip, True, ColorRange.LIMITED)
-        
+
         if self is ExprToken.Neutral:
             return get_neutral_value(clip)
 
@@ -68,7 +69,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
             return (val := get_peak_value(clip, range_in=ColorRange.FULL)) + (1 - (val <= 1.0))
 
         if self is ExprToken.RangeMin:
-            return get_lowest_value(clip, chroma, ColorRange.FULL)
+            return get_lowest_value(clip, chroma if chroma is not None else False, ColorRange.FULL)
 
         if self is ExprToken.LumaRangeMin:
             return get_lowest_value(clip, False)
@@ -77,7 +78,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
             return get_lowest_value(clip, True)
 
         if self is ExprToken.RangeMax:
-            return get_peak_value(clip, chroma, ColorRange.FULL)
+            return get_peak_value(clip, chroma if chroma is not None else False, ColorRange.FULL)
 
         if self is ExprToken.LumaRangeMax:
             return get_peak_value(clip, False)
@@ -86,7 +87,7 @@ class ExprToken(ExprTokenBase, CustomEnum):
             return get_peak_value(clip, True)
 
         if self is ExprToken.RangeInMin:
-            return get_lowest_value(clip, chroma, range_in)
+            return get_lowest_value(clip, chroma if chroma is not None else False, range_in)
 
         if self is ExprToken.LumaRangeInMin:
             return get_lowest_value(clip, False, range_in)
@@ -95,13 +96,15 @@ class ExprToken(ExprTokenBase, CustomEnum):
             return get_lowest_value(clip, True, range_in)
 
         if self is ExprToken.RangeInMax:
-            return get_peak_value(clip, chroma, range_in)
+            return get_peak_value(clip, chroma if chroma is not None else False, range_in)
 
         if self is ExprToken.LumaRangeInMax:
             return get_peak_value(clip, False, range_in)
 
         if self is ExprToken.ChromaRangeInMax:
             return get_peak_value(clip, True, range_in)
+
+        raise CustomValueError("You are using an unsupported ExprToken!", self.get_value, self)
 
     def __getitem__(self, __i: SupportsIndex) -> ExprToken:  # type: ignore
         return ExprTokenBase(f'{self.value}_{ExprVars[__i]}')  # type: ignore
@@ -131,8 +134,8 @@ class ExprOpBase(str):
 
         return self
 
-    def combine(  # type: ignore
-        self: ExprOp, *clips: vs.VideoNode | Iterable[vs.VideoNode | Iterable[vs.VideoNode]],
+    def combine(
+        self, *clips: vs.VideoNode | Iterable[vs.VideoNode | Iterable[vs.VideoNode]],
         suffix: StrArrOpt = None, prefix: StrArrOpt = None, expr_suffix: StrArrOpt = None,
         expr_prefix: StrArrOpt = None, planes: PlanesT = None, **expr_kwargs: Any
     ) -> vs.VideoNode:
@@ -185,7 +188,7 @@ class ExprOp(ExprOpBase, CustomEnum):
     ABS_PIX = '{x:d} {y:d} {char:s}[]', 3
 
     @overload
-    def __call__(  # type: ignore
+    def __call__(
         self, *clips: VideoNodeIterable, suffix: StrArrOpt = None,
         prefix: StrArrOpt = None, expr_suffix: StrArrOpt = None,
         expr_prefix: StrArrOpt = None, planes: PlanesT = None,

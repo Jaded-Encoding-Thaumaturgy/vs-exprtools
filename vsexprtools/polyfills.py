@@ -56,10 +56,10 @@ tp_func_dict = {}
 
 
 class PyObject(ctypes.Structure):
-    def incref(self):
+    def incref(self) -> None:
         self.ob_refcnt += 1
 
-    def decref(self):
+    def decref(self) -> None:
         self.ob_refcnt -= 1
 
 
@@ -82,8 +82,8 @@ ObjObjProc_p = ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, PyObject_p)
 FILE_p = ctypes.POINTER(PyFile)
 
 
-def get_not_implemented():
-    namespace = {}
+def get_not_implemented() -> Any:
+    namespace = dict[Any, Any]()
     name = "_Py_NotImplmented"
     not_implemented = ctypes.cast(
         ctypes.pythonapi._Py_NotImplementedStruct, ctypes.py_object)
@@ -258,11 +258,11 @@ override_dict['__str__'] = ('tp_str', "tp_str")
 _to_patch = False
 
 
-def curse(klass, attr, func):
+def curse(klass: Any, attr: Any, func: Any) -> None:
     assert callable(func)
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             if _to_patch:
                 return func(*map(_try_cast(klass), args), **kwargs)
@@ -287,7 +287,7 @@ def curse(klass, attr, func):
             setattr(tyobj, tp_as_name, tp_as_new_ptr)
         tp_as = tp_as_ptr[0]
 
-        for fname, ftype in struct_ty._fields_:
+        for fname, ftype in struct_ty._fields_:  # type: ignore[misc]
             if fname == impl_method:
                 cfunc_t = ftype
 
@@ -296,7 +296,7 @@ def curse(klass, attr, func):
 
         setattr(tp_as, impl_method, cfunc)
     else:
-        for fname, ftype in PyTypeObject._fields_:
+        for fname, ftype in PyTypeObject._fields_:  # type: ignore[misc]
             if fname == impl_method:
                 cfunc_t = ftype
 
@@ -308,7 +308,7 @@ def curse(klass, attr, func):
         setattr(tyobj, impl_method, cfunc)
 
 
-def reverse(klass, attr):
+def reverse(klass: Any, attr: Any) -> None:
     tp_as_name, impl_method = override_dict[attr]
     tyobj = PyTypeObject.from_address(id(klass))
     tp_as_ptr = getattr(tyobj, tp_as_name)
@@ -317,7 +317,7 @@ def reverse(klass, attr):
             tp_as = tp_as_ptr[0]
 
             struct_ty = PyTypeObject_as_types_dict[tp_as_name]
-            for fname, ftype in struct_ty._fields_:
+            for fname, ftype in struct_ty._fields_:  # type: ignore[misc]
                 if fname == impl_method:
                     cfunc_t = ftype
 
@@ -331,8 +331,8 @@ def reverse(klass, attr):
             setattr(tyobj, impl_method, cfunc)
 
 
-def _try_cast(klass):
-    def e(v):
+def _try_cast(klass: Any) -> Any:
+    def e(v: Any) -> Any:
         try:
             return klass(v)
         except BaseException:
@@ -340,7 +340,7 @@ def _try_cast(klass):
     return e
 
 
-def _poly(op, k):
+def _poly(op: Any, k: Any) -> Any:
     def inner(*args: Any, **kwargs: Any) -> Any:
         if not any(isinstance(x, ExprVar) for x in args):
             return substitutions[k]['min'][0](*args, **kwargs)
@@ -370,7 +370,7 @@ substitutions = {
 }
 
 
-def enable_poly():
+def enable_poly() -> None:
     global _to_patch
 
     for k, v in substitutions.items():
@@ -382,7 +382,7 @@ def enable_poly():
     _to_patch = False
 
 
-def disable_poly():
+def disable_poly() -> None:
     global _to_patch
 
     for k, v in substitutions.items():

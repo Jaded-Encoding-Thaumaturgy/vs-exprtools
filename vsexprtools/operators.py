@@ -16,8 +16,8 @@ from .exprop import ExprOp
 if TYPE_CHECKING:
     from .variables import ComputedVar, ExprOtherT, ExprVar
 else:
-    ExprOtherT: None
-    ExprVar: None
+    ExprOtherT = Any
+    ExprVar = Any
 
 
 __all__ = [
@@ -77,7 +77,7 @@ class TernaryBaseOperator(BaseOperator):
 
 
 @dataclass
-class UnaryOperator(UnaryBaseOperator):
+class UnaryOperator(Generic[T], UnaryBaseOperator):
     function: Callable[[T], T]
 
 
@@ -92,7 +92,7 @@ class UnaryBoolOperator(UnaryBaseOperator):
 
 
 @dataclass
-class BinaryOperator(BinaryBaseOperator):
+class BinaryOperator(Generic[T, R], BinaryBaseOperator):
     function: Callable[[T, R], T | R]
 
 
@@ -107,11 +107,11 @@ class BinaryBoolOperator(BinaryBaseOperator):
 
 
 @dataclass
-class TernaryOperator(TernaryBaseOperator):
+class TernaryOperator(Generic[T, R], TernaryBaseOperator):
     function: Callable[[bool, T, R], T | R]
 
 
-class TernaryIfOperator(TernaryOperator):
+class TernaryIfOperator(TernaryOperator[ExprOtherT, ExprOtherT]):
     def __call__(self, cond: ExprOtherT, if_true: ExprOtherT, if_false: ExprOtherT) -> ComputedVar:
         return super().__call__(cond, if_true, if_false)
 
@@ -140,7 +140,7 @@ class TernaryPixelAccessOperator(Generic[T], TernaryBaseOperator):
         if not hasattr(self, 'char'):
             raise ValueError('TernaryPixelAccessOperator: You have to call set_vars!')
 
-        return self.rpn_name.format(char=str(self.char), x=int(self.x), y=int(self.y))
+        return self.rpn_name.format(char=str(self.char), x=int(self.x), y=int(self.y))  # type: ignore[call-overload]
 
 
 class ExprOperators:
@@ -165,7 +165,7 @@ class ExprOperators:
 
     TRUNC = UnaryMathOperator[SupportsTrunc, int](ExprOp.TRUNC, math.trunc)
 
-    ROUND = UnaryMathOperator[SupportsRound[T], int](ExprOp.ROUND, lambda x: round(x))
+    ROUND = UnaryMathOperator[SupportsRound[int], int](ExprOp.ROUND, lambda x: round(x))
 
     FLOOR = UnaryMathOperator[SupportsFloatOrIndex, int](ExprOp.FLOOR, math.floor)
 
@@ -207,7 +207,7 @@ class ExprOperators:
     MOD = BinaryOperator(ExprOp.MOD, op.mod)
 
     # 3 Arguments
-    TERN = TernaryIfOperator(ExprOp.TERN, lambda x, y, z: (x if z else y))  # type: ignore
+    TERN = TernaryIfOperator(ExprOp.TERN, lambda x, y, z: (x if z else y))
 
     CLAMP = TernaryCompOperator(
         ExprOp.CLAMP, lambda x, y, z: max(y, min(x, z))

@@ -77,7 +77,7 @@ class _ExprVars(Iterable[str]):
         if stop is MISSING:
             self.start = 0
             if isinstance(start_stop, HoldsVideoFormatT | VideoFormatT):  # type: ignore
-                self.stop = get_video_format(start_stop).num_planes
+                self.stop = get_video_format(start_stop).num_planes  # type: ignore[arg-type]
             else:
                 self.stop = start_stop.__index__()  # type: ignore
         else:
