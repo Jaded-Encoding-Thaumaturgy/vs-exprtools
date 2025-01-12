@@ -383,7 +383,7 @@ class ExprOp(ExprOpBase, CustomEnum):
             if clamp:
                 out.append(ExprOp.clamp(ExprToken.RangeMin, ExprToken.RangeMax))
 
-        return output[0] if len(output) == 0 else tuple(output)  # type: ignore[return-value]
+        return output[0] if len(output) == 1 else tuple(output)  # type: ignore[return-value]
 
     @staticmethod
     def _parse_planes(
