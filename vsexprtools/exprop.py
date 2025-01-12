@@ -112,7 +112,7 @@ class ExprList(StrList):
     def __call__(
         self, *clips: VideoNodeIterable, planes: PlanesT = None,
         format: HoldsVideoFormatT | VideoFormatT | None = None, opt: bool | None = None,
-        boundary: bool = False, force_akarin: Literal[False] | FuncExceptT = False,
+        boundary: bool = True, force_akarin: Literal[False] | FuncExceptT = False,
         func: FuncExceptT | None = None, split_planes: bool = False, **kwargs: Any
     ) -> vs.VideoNode:
         from .funcs import norm_expr
