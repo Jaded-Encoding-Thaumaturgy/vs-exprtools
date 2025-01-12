@@ -6,14 +6,14 @@ from typing import Any, Iterable, Iterator, Literal, SupportsFloat, SupportsInde
 
 from vstools import (
     ColorRange, ConvMode, CustomEnum, CustomIndexError, CustomValueError, FuncExceptT,
-    HoldsVideoFormatT, PlanesT, StrArrOpt, StrList, VideoFormatT, VideoNodeIterable, flatten,
-    get_lowest_value, get_neutral_value, get_peak_value, vs
+    HoldsVideoFormatT, PlanesT, StrArrOpt, StrList, VideoFormatT, VideoNodeIterable,
+    flatten, flatten_vnodes, get_lowest_value, get_neutral_value, get_peak_value, vs
 )
 
 from .util import ExprVarRangeT, ExprVars, ExprVarsT, complexpr_available
 
 __all__ = [
-    'ExprOp', 'ExprToken', 'ExprList'
+    'ExprOp', 'ExprToken', 'ExprList', 'TupleExprList'
 ]
 
 
@@ -122,6 +122,26 @@ class ExprList(StrList):
         return norm_expr(
             clips, self, planes, format, opt, boundary, force_akarin, func, split_planes, **kwargs  # type: ignore
         )
+
+class TupleExprList(tuple[ExprList, ...]):
+    def __call__(
+        self, *clips: VideoNodeIterable, planes: PlanesT = None,
+        format: HoldsVideoFormatT | VideoFormatT | None = None, opt: bool | None = None,
+        boundary: bool = True, force_akarin: Literal[False] | FuncExceptT = False,
+        func: FuncExceptT | None = None, split_planes: bool = False, **kwargs: Any
+    ) -> vs.VideoNode:
+        clip: list[vs.VideoNode] | vs.VideoNode = flatten_vnodes(clips)
+
+        for exprlist in self:
+            clip = exprlist(
+                clip, planes=planes, format=format, opt=opt, boundary=boundary,
+                force_akarin=force_akarin, func=func, split_planes=split_planes, **kwargs
+            )
+
+        return clip[0] if isinstance(clip, list) else clip
+
+    def __str__(self) -> str:
+        return str(tuple(str(e) for e in self))
 
 
 class ExprOpBase(str):
@@ -237,33 +257,10 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         return ExprList([c, min, ExprOp.MAX, max, ExprOp.MIN])
 
-    @overload
-    @classmethod
-    def matrix(
-        cls, var: str, radius: int, mode: Literal[ConvMode.HV], exclude: Iterable[tuple[int, int]] | None = ...
-    ) -> tuple[ExprList, ExprList]:
-        ...
-
-    @overload
-    @classmethod
-    def matrix(
-        cls, var: str, radius: int,
-        mode: Literal[ConvMode.HORIZONTAL] | Literal[ConvMode.VERTICAL] | Literal[ConvMode.SQUARE],
-        exclude: Iterable[tuple[int, int]] | None = ...
-    ) -> ExprList:
-        ...
-
-    @overload
-    @classmethod
-    def matrix(
-        cls, var: str, radius: int, mode: ConvMode, exclude: Iterable[tuple[int, int]] | None = ...
-    ) -> tuple[ExprList, ExprList] | ExprList:
-        ...
-
     @classmethod
     def matrix(
         cls, var: str, radius: int, mode: ConvMode, exclude: Iterable[tuple[int, int]] | None = None
-    ) -> tuple[ExprList, ExprList] | ExprList:
+    ) -> TupleExprList:
         exclude = list(exclude) if exclude else list()
 
         match mode:
@@ -278,52 +275,19 @@ class ExprOp(ExprOpBase, CustomEnum):
             case ConvMode.HORIZONTAL:
                 coordinates = [(xy, 0) for xy in range(-radius, radius + 1)]
             case ConvMode.HV:
-                return (
-                    cls.matrix(var, radius, ConvMode.VERTICAL, exclude),
-                    cls.matrix(var, radius, ConvMode.HORIZONTAL, exclude),
-                )
+                return TupleExprList([
+                    cls.matrix(var, radius, ConvMode.VERTICAL, exclude)[0],
+                    cls.matrix(var, radius, ConvMode.HORIZONTAL, exclude)[0],
+               ])
             case _:
                 raise NotImplementedError
 
-        return ExprList([
+        return TupleExprList([ExprList([
             var if x == y == 0 else
             ExprOp.REL_PIX(var, x, y)
             for (x, y) in coordinates
             if (x, y) not in exclude
-        ])
-
-    @overload
-    @classmethod
-    def convolution(
-        cls, var: str, matrix: Iterable[SupportsFloat] | Iterable[Iterable[SupportsFloat]],
-        bias: float | None = None, divisor: float | bool = True, saturate: bool = True,
-        mode: Literal[ConvMode.HV] = ...,
-        premultiply: float | int | None = None,
-        multiply: float | int | None = None, clamp: bool = False
-    ) -> tuple[ExprList, ExprList]:
-        ...
-
-    @overload
-    @classmethod
-    def convolution(
-        cls, var: str, matrix: Iterable[SupportsFloat] | Iterable[Iterable[SupportsFloat]],
-        bias: float | None = None, divisor: float | bool = True, saturate: bool = True,
-        mode: Literal[ConvMode.HORIZONTAL] | Literal[ConvMode.VERTICAL] | Literal[ConvMode.SQUARE] = ...,
-        premultiply: float | int | None = None,
-        multiply: float | int | None = None, clamp: bool = False
-    ) -> ExprList:
-        ...
-
-    @overload
-    @classmethod
-    def convolution(
-        cls, var: str, matrix: Iterable[SupportsFloat] | Iterable[Iterable[SupportsFloat]],
-        bias: float | None = None, divisor: float | bool = True, saturate: bool = True,
-        mode: ConvMode = ...,
-        premultiply: float | int | None = None,
-        multiply: float | int | None = None, clamp: bool = False
-    ) -> tuple[ExprList, ExprList] | ExprList:
-        ...
+        ])])
 
     @classmethod
     def convolution(
@@ -331,7 +295,7 @@ class ExprOp(ExprOpBase, CustomEnum):
         bias: float | None = None, divisor: float | bool = True, saturate: bool = True,
         mode: ConvMode = ConvMode.HV, premultiply: float | int | None = None,
         multiply: float | int | None = None, clamp: bool = False
-    ) -> tuple[ExprList, ExprList] | ExprList:
+    ) -> TupleExprList:
         convolution = list[float](flatten(matrix))  # type: ignore
 
         if not (conv_len := len(convolution)) % 2:
@@ -348,17 +312,13 @@ class ExprOp(ExprOpBase, CustomEnum):
 
         rel_pixels = cls.matrix(var, radius, mode)
 
-        def _make_output(rel_pixels: ExprList) -> ExprList:
-            return ExprList([
+        output = TupleExprList([
+            ExprList([
                 rel_pix if weight == 1 else [rel_pix, weight, ExprOp.MUL]
-                for rel_pix, weight in zip(rel_pixels, convolution)
+                for rel_pix, weight in zip(rel_px, convolution)
                 if weight != 0
-            ])
-
-        output = (
-            [_make_output(rp) for rp in rel_pixels] if isinstance(rel_pixels, tuple) else [_make_output(rel_pixels)]
-        )
-
+            ]) for rel_px in rel_pixels
+        ])
 
         for out in output:
             out.extend(ExprOp.ADD * out.mlength)
@@ -385,7 +345,7 @@ class ExprOp(ExprOpBase, CustomEnum):
             if clamp:
                 out.append(ExprOp.clamp(ExprToken.RangeMin, ExprToken.RangeMax))
 
-        return output[0] if len(output) == 1 else tuple(output)  # type: ignore[return-value]
+        return output
 
     @staticmethod
     def _parse_planes(
