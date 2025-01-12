@@ -7,7 +7,7 @@ from typing import (
 )
 
 from vstools import (
-    ByteData, ColorRangeT, F, Self, get_depth, get_lowest_value, get_neutral_value, get_peak_value,
+    ByteData, ColorRangeT, get_depth, get_lowest_value, get_neutral_value, get_peak_value,
     get_plane_sizes, scale_value, vs
 )
 

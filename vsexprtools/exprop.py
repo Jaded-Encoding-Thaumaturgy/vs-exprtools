@@ -5,8 +5,9 @@ from math import isqrt
 from typing import Any, Iterable, Iterator, Literal, SupportsFloat, SupportsIndex, overload
 
 from vstools import (
-    ColorRange, ConvMode, CustomEnum, CustomIndexError, FuncExceptT, HoldsVideoFormatT, PlanesT, StrArrOpt, StrList,
-    VideoFormatT, VideoNodeIterable, flatten, get_lowest_value, get_neutral_value, get_peak_value, vs
+    ColorRange, ConvMode, CustomEnum, CustomIndexError, CustomValueError, FuncExceptT,
+    HoldsVideoFormatT, PlanesT, StrArrOpt, StrList, VideoFormatT, VideoNodeIterable, flatten,
+    get_lowest_value, get_neutral_value, get_peak_value, vs
 )
 
 from .util import ExprVarRangeT, ExprVars, ExprVarsT, complexpr_available
