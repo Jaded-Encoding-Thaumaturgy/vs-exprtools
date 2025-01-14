@@ -259,7 +259,7 @@ class ExprOp(ExprOpBase, CustomEnum):
 
     @classmethod
     def matrix(
-        cls, var: str, radius: int, mode: ConvMode, exclude: Iterable[tuple[int, int]] | None = None
+        cls, var: str | ExprVarsT, radius: int, mode: ConvMode, exclude: Iterable[tuple[int, int]] | None = None
     ) -> TupleExprList:
         exclude = list(exclude) if exclude else list()
 
@@ -279,6 +279,14 @@ class ExprOp(ExprOpBase, CustomEnum):
                     cls.matrix(var, radius, ConvMode.VERTICAL, exclude)[0],
                     cls.matrix(var, radius, ConvMode.HORIZONTAL, exclude)[0],
                ])
+            case ConvMode.TEMPORAL:
+                if len(var) != radius * 2 + 1:
+                    raise CustomValueError(
+                        "`var` must have a number of elements proportional to the radius",
+                        cls.matrix, var
+                    )
+
+                return TupleExprList([ExprList(v for v in var)])
             case _:
                 raise NotImplementedError
 
@@ -291,7 +299,7 @@ class ExprOp(ExprOpBase, CustomEnum):
 
     @classmethod
     def convolution(
-        cls, var: str, matrix: Iterable[SupportsFloat] | Iterable[Iterable[SupportsFloat]],
+        cls, var: str | ExprVarsT, matrix: Iterable[SupportsFloat] | Iterable[Iterable[SupportsFloat]],
         bias: float | None = None, divisor: float | bool = True, saturate: bool = True,
         mode: ConvMode = ConvMode.HV, premultiply: float | int | None = None,
         multiply: float | int | None = None, clamp: bool = False
