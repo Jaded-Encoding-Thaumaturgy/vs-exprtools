@@ -30,7 +30,7 @@ class ExprVar(int):
     parent_expr: inline_expr | None
 
     def __new__(
-        cls, x: ByteData, __parent_expr: inline_expr | None, /, *args: Any, **kwargs: Any
+        cls, x: ByteData, __parent_expr: inline_expr | None = None, /, *args: Any, **kwargs: Any
     ) -> ExprVar:
         return super().__new__(cls, 0)
 
