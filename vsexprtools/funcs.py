@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import partial
 from math import ceil
-from typing import Any, Iterable, Literal, Sequence
+from typing import Any, Iterable, Literal, Sequence, cast
 
 from vstools import (
     CustomRuntimeError, CustomValueError, FuncExceptT, HoldsVideoFormatT, PlanesT, ProcessVariableResClip, StrArr,
@@ -10,7 +10,7 @@ from vstools import (
     get_video_format, to_arr, vs
 )
 
-from .exprop import ExprOp, ExprOpBase
+from .exprop import ExprOp, ExprOpBase, ExprList, TupleExprList
 from .util import ExprVars, bitdepth_aware_tokenize_expr, complexpr_available, norm_expr_planes
 
 __all__ = [
@@ -97,19 +97,55 @@ def combine(
 
 
 def norm_expr(
-    clips: VideoNodeIterable, expr: str | StrArr | tuple[str | StrArr, ...], planes: PlanesT = None,
-    format: HoldsVideoFormatT | VideoFormatT | None = None, opt: bool | None = None,
-    boundary: bool = True, force_akarin: Literal[False] | FuncExceptT = False,
-    func: FuncExceptT | None = None, split_planes: bool = False, **kwargs: Any
+    clips: VideoNodeIterable,
+    expr: str | StrArr | ExprList | tuple[str | StrArr | ExprList, ...] | TupleExprList,
+    planes: PlanesT = None, format: HoldsVideoFormatT | VideoFormatT | None = None,
+    opt: bool | None = None, boundary: bool = True,
+    force_akarin: Literal[False] | FuncExceptT = False, func: FuncExceptT | None = None,
+    split_planes: bool = False,
+    **kwargs: Any
 ) -> vs.VideoNode:
+    """
+    Evaluates an expression per pixel.
+
+    :param clips:           Input clip(s).
+    :param expr:            Expression to be evaluated.
+                            A single str will be processed for all planes.
+                            A list will be concatenated to form a single expr for all planes.
+                            A tuple of these types will allow specification of different expr for each planes.
+                            A TupleExprList will make a norm_expr call for each expression within this tuple.
+    :param planes:          Plane to process, defaults to all.
+    :param format:          Output format, defaults to the first clip format.
+    :param opt:             Forces integer evaluation as much as possible.
+    :param boundary:        Specifies the default boundary condition for relative pixel accesses:
+                            - 0 means clamped
+                            - 1 means mirrored
+    :param split_planes:    Splits the VideoNodes into their individual planes.
+    :return:                Evaluated clip.
+    """
     clips = flatten_vnodes(clips, split_planes=split_planes)
 
     if isinstance(expr, str):
         nexpr = tuple([[expr]])
-    elif not isinstance(expr, tuple):
-        nexpr = tuple([to_arr(expr)])  # type: ignore
+    elif isinstance(expr, tuple):
+        if isinstance(expr, TupleExprList):
+            if len(expr) < 1:
+                raise CustomRuntimeError(
+                    "When passing a TupleExprList you need at least one expr in it!", func, expr
+                )
+
+            nclips: list[vs.VideoNode] | vs.VideoNode = clips
+
+            for e in expr:
+                nclips = norm_expr(
+                    nclips, e, planes, format, opt, boundary, force_akarin, func, split_planes, **kwargs
+                )
+
+            return cast(vs.VideoNode, nclips)
+        else:
+            nexpr = tuple([to_arr(x) for x in expr])  # type: ignore[arg-type]
     else:
-        nexpr = tuple([to_arr(x) for x in expr])  # type: ignore
+        nexpr = tuple([to_arr(expr)])  # type: ignore[arg-type]
 
     normalized_exprs = [StrList(plane_expr).to_str() for plane_expr in nexpr]
 
