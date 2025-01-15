@@ -105,6 +105,25 @@ def norm_expr(
     split_planes: bool = False,
     **kwargs: Any
 ) -> vs.VideoNode:
+    """
+    Evaluates an expression per pixel.
+
+    :param clips:           Input clip(s).
+    :param expr:            Expression to be evaluated.
+                            A single str will be processed for all planes.
+                            A list will be concatenated to form a single expr for all planes.
+                            A tuple of these types will allow to specify a different expr for each planes.
+                            A TupleExprList will enable multiple passes of norm_expr based on the ExprLists.
+                            included in it
+    :param planes:          Planes to process, defaults to all.
+    :param format:          Output format, defaults to the first clip format.
+    :param opt:             Forces integer evaluation as much as possible.
+    :param boundary:        Specifies the default boundary condition for relative pixel accesses:
+                            - 0 means clamped
+                            - 1 means mirrored
+    :param split_planes:    Splits the VideoNodes into their individual planes.
+    :return:                Evaluated clip.
+    """
     clips = flatten_vnodes(clips, split_planes=split_planes)
 
     if isinstance(expr, str):
