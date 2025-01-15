@@ -112,10 +112,9 @@ def norm_expr(
     :param expr:            Expression to be evaluated.
                             A single str will be processed for all planes.
                             A list will be concatenated to form a single expr for all planes.
-                            A tuple of these types will allow to specify a different expr for each planes.
-                            A TupleExprList will enable multiple passes of norm_expr based on the ExprLists.
-                            included in it
-    :param planes:          Planes to process, defaults to all.
+                            A tuple of these types will allow specification of different expr for each planes.
+                            A TupleExprList will make a norm_expr call for each expression within this tuple.
+    :param planes:          Plane to process, defaults to all.
     :param format:          Output format, defaults to the first clip format.
     :param opt:             Forces integer evaluation as much as possible.
     :param boundary:        Specifies the default boundary condition for relative pixel accesses:
