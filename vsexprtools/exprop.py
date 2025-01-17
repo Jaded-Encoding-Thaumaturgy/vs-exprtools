@@ -260,7 +260,7 @@ class ExprOp(ExprOpBase, CustomEnum):
     @classmethod
     def matrix(
         cls, var: str | ExprVarsT, radius: int, mode: ConvMode, exclude: Iterable[tuple[int, int]] | None = None
-    ) -> TupleExprList:
+    ) -> ExprList | TupleExprList:
         exclude = list(exclude) if exclude else list()
 
         match mode:
@@ -290,12 +290,12 @@ class ExprOp(ExprOpBase, CustomEnum):
             case _:
                 raise NotImplementedError
 
-        return TupleExprList([ExprList([
+        return ExprList([
             var if x == y == 0 else
             ExprOp.REL_PIX(var, x, y)
             for (x, y) in coordinates
             if (x, y) not in exclude
-        ])])
+        ])
 
     @classmethod
     def convolution(
