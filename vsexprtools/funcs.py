@@ -1,20 +1,25 @@
 from __future__ import annotations
 
-from functools import partial
+from functools import partial, wraps
 from math import ceil
-from typing import Any, Iterable, Literal, Sequence, cast
+from typing import Any, Callable, Iterable, Literal, Sequence, cast, overload
 
 from vstools import (
-    CustomRuntimeError, CustomValueError, FuncExceptT, HoldsVideoFormatT, PlanesT, ProcessVariableResClip, StrArr,
-    StrArrOpt, StrList, SupportsString, VideoFormatT, VideoNodeIterable, check_variable_format, core, flatten_vnodes,
-    get_video_format, to_arr, vs
+    F_VD, CustomRuntimeError, CustomValueError, FuncExceptT, HoldsVideoFormatT, P, PlanesT,
+    ProcessVariableResClip, StrArr, StrArrOpt, StrList, SupportsString, VideoFormatT,
+    VideoNodeIterable, check_variable_format, core, flatten_vnodes, get_video_format, normalize_seq,
+    to_arr, vs
 )
 
-from .exprop import ExprOp, ExprOpBase, ExprList, TupleExprList
+from .exprop import ExprList, ExprOp, ExprOpBase, ExprToken, TupleExprList
 from .util import ExprVars, bitdepth_aware_tokenize_expr, complexpr_available, norm_expr_planes
 
 __all__ = [
-    'expr_func', 'combine', 'norm_expr',
+    'expr_func', 'combine',
+
+    'limiter_expr', 'limiter_output',
+
+    'norm_expr',
 
     'average_merge', 'weighted_merge'
 ]
@@ -94,6 +99,85 @@ def combine(
     operators = operator * max(n_clips - 1, int(has_op))
 
     return norm_expr(clips, [expr_prefix, args, operators, expr_suffix], planes, **kwargs)
+
+
+def limiter_expr(
+    clip: vs.VideoNode,
+    min_val: float | ExprToken | Sequence[float | ExprToken] = ExprToken.RangeMin,
+    max_val: float | ExprToken | Sequence[float | ExprToken] = ExprToken.RangeMax,
+    planes: PlanesT = None,
+    func: FuncExceptT | None = None
+) -> vs.VideoNode:
+    """
+    Limits the pixel values to the range (min_val, max_val)
+
+    :param clip:        Clip to process.
+    :param min_val:     Lower bound. Defaults to the lowest allowed value for the input.
+                        Can be specified for each plane individually.
+    :param max_val:     Upper bound. Defaults to the highest allowed value for the input.
+                        Can be specified for each plane individually.
+    :param planes:      Specifies which planes will be processed.
+    """
+    func = func or limiter_expr
+
+    assert check_variable_format(clip, func)
+
+    min_val = normalize_seq(min_val)
+    max_val = normalize_seq(max_val)
+
+    if all([
+        clip.format.sample_type == vs.INTEGER,
+        (mi == ExprToken.RangeMin for mi in min_val),
+        (ma == ExprToken.RangeMax for ma in max_val),
+    ]):
+        return clip
+
+    expr = list[ExprList]()
+
+    for i, (mi, ma) in enumerate(zip(min_val, max_val)):
+        if mi is ExprToken.RangeMin and i >= 1:
+            mi = mi.get_value(clip, chroma=True)
+
+        if ma is ExprToken.RangeMax and i >= 1:
+            ma = ma.get_value(clip, chroma=True)
+
+        expr.append(ExprOp.clamp(mi, ma, "x"))
+
+    return norm_expr(clip, tuple(expr), planes, func=func)
+
+
+@overload
+def limiter_output(func: F_VD, /) -> F_VD:
+    ...
+
+
+@overload
+def limiter_output(
+    *,
+    min_val: float | ExprToken | Sequence[float | ExprToken] = ExprToken.RangeMin,
+    max_val: float | ExprToken | Sequence[float | ExprToken] = ExprToken.RangeMax,
+    planes: PlanesT = None,
+) -> Callable[[F_VD], F_VD]:
+    ...
+
+
+def limiter_output(
+    func: F_VD | None = None,
+    /,
+    *,
+    min_val: float | ExprToken | Sequence[float | ExprToken] = ExprToken.RangeMin,
+    max_val: float | ExprToken | Sequence[float | ExprToken] = ExprToken.RangeMax,
+    planes: PlanesT = None,
+) -> F_VD | Callable[[F_VD], F_VD]:
+    """Decorator implementation of `limiter_expr`."""
+    if func is None:
+        return cast(Callable[[F_VD], F_VD], partial(limiter_output, min_val=min_val, max_val=max_val, planes=planes))
+
+    @wraps(func)
+    def _wrapper_limiter(*args: P.args, **kwargs: P.kwargs) -> vs.VideoNode:
+        return limiter_expr(func(*args, **kwargs), min_val, max_val, planes, func)
+
+    return cast(F_VD, _wrapper_limiter)
 
 
 def norm_expr(
